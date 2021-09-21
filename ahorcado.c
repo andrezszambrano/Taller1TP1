@@ -5,6 +5,20 @@
 #define SIN_NOVEDADES 0
 #define SIN_INTENTOS 1
 #define VICTORIA 2
+#define ERROR -1
+
+void imprimirPalabraSecretaYNumIntentos(Ahorcado* ahorcado){
+	printf("Palabra secreta: %s\n", ahorcado->restante);
+	printf("Te quedan %i intentos\n", ahorcado->numIntentos);
+	printf("Ingrese letra:\n");
+}
+
+void imprimirMensajeDeFinDePartida(Ahorcado* ahorcado, int aux){
+	if(aux == VICTORIA)
+		printf("Ganaste!!\n");
+	else
+		printf("Perdiste! La palabra secreta era: %s\n",ahorcado->palabraAAdivinar);
+}
 
 void ahorcadoInicializar(Ahorcado* ahorcado, char* palabra, int numIntentos){
 	if(ahorcado == NULL)
@@ -15,6 +29,7 @@ void ahorcadoInicializar(Ahorcado* ahorcado, char* palabra, int numIntentos){
 	for(int i = 0; i < strlen(ahorcado->palabraAAdivinar); i++)
 		ahorcado->restante[i] = '_';
 	ahorcado->restante[strlen(ahorcado->palabraAAdivinar)]='\0';
+	imprimirPalabraSecretaYNumIntentos(ahorcado);
 }
 
 void validarLetra(Ahorcado* ahorcado,char letra){
@@ -51,34 +66,14 @@ int estadoDePartida(Ahorcado* ahorcado){
 
 }
 
-int hacerJugada(Ahorcado* ahorcado){
-	printf("Palabra secreta: %s\n", ahorcado->restante);
-	printf("Te quedan %i intentos\n", ahorcado->numIntentos);
-	printf("Ingrese letra:\n");
-	char letraRecibida = getchar();
-	getchar();
+int ahorcadoJugarCaracter(Ahorcado* ahorcado, char letraRecibida){
+	if(!ahorcado)
+		return ERROR;
 	validarLetra(ahorcado, letraRecibida);
-	return estadoDePartida(ahorcado);
+	int aux = estadoDePartida(ahorcado);
+	if(aux != VICTORIA && aux != SIN_INTENTOS)
+		imprimirPalabraSecretaYNumIntentos(ahorcado);
+	else
+		imprimirMensajeDeFinDePartida(ahorcado, aux);
+	return aux;
 }
-
-int ahorcadoJugar(Ahorcado* ahorcado){
-	//printf("Tenemos la palabra '%s' con la cantidad de intentos %i\n", ahorcado->palabraAAdivinar, ahorcado->numIntentos);
-	//printf("Palabra por adivinar: %s\n", ahorcado->restante);
-	int retJugar = hacerJugada(ahorcado);
-	while(retJugar == 0){
-		retJugar = hacerJugada(ahorcado);
-	}
-	if (retJugar == VICTORIA){
-		printf("Ganaste!!\n");
-	}else{
-		printf("Perdiste! La palabra secreta era: %s\n",ahorcado->palabraAAdivinar);
-	}
-	return retJugar;
-}
-
-
-
-
-
-
-

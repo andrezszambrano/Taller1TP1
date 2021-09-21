@@ -12,7 +12,7 @@ typedef struct Ahorcado{
 //Inicializa una partida de ahorcado para una palabra y con número de intentos
 void ahorcadoInicializar(Ahorcado* ahorcado, char* palabra, int numIntentos);
 
-//Se juega la partida
-int ahorcadoJugar(Ahorcado* ahorcado);
+//Se juega el caracter enviado por parámetro.
+int ahorcadoJugarCaracter(Ahorcado* ahorcado, char letra);
 
 #endif

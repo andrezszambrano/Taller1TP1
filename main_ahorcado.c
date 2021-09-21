@@ -4,6 +4,17 @@
 #include "ahorcado.h"
 #include "controla_partidas.h"
 
+#define FIN_DE_PARTIDA 1
+#define SIN_PARTIDAS -2
+
+void pedirCaracter(char* caracter);
+
+void pedirCaracter(char* caracter){
+	caracter[0] = getchar();
+	getchar();
+	caracter[1] = '\0';	
+}
+
 int main(int argc, char* argv[]){
 	
 	if(argc < 3){
@@ -13,7 +24,19 @@ int main(int argc, char* argv[]){
 
 	ControlaPartidas controlador;
 	controlaPartidasInicializar(&controlador, atoi(argv[1]), argv[2]);
-	controlaPartidasEmpezar(&controlador);	
+	int aux = controlaPartidasEmpezarNuevaPartida(&controlador);
+	while(aux != SIN_PARTIDAS){
+		char caracter[2]; 
+		pedirCaracter(caracter);
+		int aux2 = controlaPartidasJugarCaracter(&controlador, caracter);
+		while(aux2 != FIN_DE_PARTIDA){
+			pedirCaracter(caracter);
+			aux2 = controlaPartidasJugarCaracter(&controlador, caracter);
+		}
+		aux = controlaPartidasEmpezarNuevaPartida(&controlador);
+	}
+
 	controlaPartidasResumen(&controlador);
 	return 0;
 }
+

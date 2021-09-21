@@ -2,6 +2,7 @@
 #define __CONTROLA_PARTIDAS_H__
 
 #include <stdio.h>
+#include <stdbool.h>
 #include "ahorcado.h"
 
 typedef struct ControlaPartidas{ //Struct que controla una sesión de ahorcados
@@ -10,6 +11,7 @@ typedef struct ControlaPartidas{ //Struct que controla una sesión de ahorcados
 	Ahorcado partidaActual;
 	int partidasGanadas;
 	int partidasPerdidas;
+	bool partidaEnJuego;
 }ControlaPartidas;
 
 
@@ -17,11 +19,12 @@ typedef struct ControlaPartidas{ //Struct que controla una sesión de ahorcados
 //del archivo mandado por parámetro
 void controlaPartidasInicializar(ControlaPartidas* ptrControla, int numIntentos, char* pathAArchivo);
 
+//Se inicia una nueva partida sí controlador->partidaEnJuego = false. 
+int controlaPartidasEmpezarNuevaPartida(ControlaPartidas* controlador);
 
-//Comienza el ciclo de juego. Se lee una palabra del archivo, se juega al ahorcado, se termina
-//la partida, y se inicia otra partida con la palabra siguiente, así hasta que se lean todas 
-//las palabras del archivo
-void controlaPartidasEmpezar(ControlaPartidas* controlador);
+//Se juegan los caracteres enviados a la partida de ahorcados actual. Sí 
+//controlador->partidaEnJuego = false, devuelve error.
+int controlaPartidasJugarCaracter(ControlaPartidas* controlador, char* caracter);
 
 //Da el resumen de victorias y derrotas del controlador.
 void controlaPartidasResumen(ControlaPartidas* controlador);
