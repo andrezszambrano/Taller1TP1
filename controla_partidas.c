@@ -38,22 +38,30 @@ int controlaPartidasEmpezarNuevaPartida(ControlaPartidas* controlador){
 		return SIN_PALABRAS_RESTANTES;
 }
 
-int controlaPartidasJugarCaracter(ControlaPartidas* controlador, char* caracter){
+int controlaPartidasJugarCaracter(ControlaPartidas* controlador, char* caracteres){
 	if(!controlador)
 		return ERROR;
 	if(!controlador->partidaEnJuego)
 		return ERROR;
-	char letra[2];
-	strncpy(letra, caracter, 2);
-	int aux = ahorcadoJugarCaracter(&(controlador->partidaActual), letra[0]);
+	bool mandarLetra = true;
+	int i = 0;
+	int len = strlen(caracteres);
+	int aux;
+	while(mandarLetra && i < len){
+		aux = ahorcadoJugarCaracter(&(controlador->partidaActual), caracteres[i]);
+		if(aux == VICTORIA || aux == DERROTA)
+			mandarLetra = false;
+		i++;
+	}
 	if(aux == SIN_NOVEDADES)
 		return aux;
 	else if(aux == VICTORIA)
 		controlador->partidasGanadas++;
 	else
-		controlador->partidasPerdidas++;
+		controlador->partidasPerdidas++;	
 	controlador->partidaEnJuego = false;
 	return FIN_DE_PARTIDA;
+	
 }
 
 void controlaPartidasResumen(ControlaPartidas* controlador){
