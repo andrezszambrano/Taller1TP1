@@ -14,5 +14,6 @@ int main(int argc, char* argv[]){
 	ControlaPartidas controlador;
 	controlaPartidasInicializar(&controlador, atoi(argv[1]), argv[2]);
 	controlaPartidasEmpezar(&controlador);	
+	controlaPartidasResumen(&controlador);
 	return 0;
 }

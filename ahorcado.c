@@ -5,6 +5,7 @@
 #define SIN_NOVEDADES 0
 #define SIN_INTENTOS 1
 #define VICTORIA 2
+
 void ahorcadoInicializar(Ahorcado* ahorcado, char* palabra, int numIntentos){
 	if(ahorcado == NULL)
 		return;
@@ -61,8 +62,8 @@ int hacerJugada(Ahorcado* ahorcado){
 }
 
 int ahorcadoJugar(Ahorcado* ahorcado){
-	printf("Tenemos la palabra '%s' con la cantidad de intentos %i\n", ahorcado->palabraAAdivinar, ahorcado->numIntentos);
-	printf("Palabra por adivinar: %s\n", ahorcado->restante);
+	//printf("Tenemos la palabra '%s' con la cantidad de intentos %i\n", ahorcado->palabraAAdivinar, ahorcado->numIntentos);
+	//printf("Palabra por adivinar: %s\n", ahorcado->restante);
 	int retJugar = hacerJugada(ahorcado);
 	while(retJugar == 0){
 		retJugar = hacerJugada(ahorcado);

@@ -23,4 +23,7 @@ void controlaPartidasInicializar(ControlaPartidas* ptrControla, int numIntentos,
 //las palabras del archivo
 void controlaPartidasEmpezar(ControlaPartidas* controlador);
 
+//Da el resumen de victorias y derrotas del controlador.
+void controlaPartidasResumen(ControlaPartidas* controlador);
+
 #endif

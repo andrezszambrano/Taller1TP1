@@ -3,6 +3,7 @@
 
 #define VICTORIA 2
 #define DERROTA 1
+
 void controlaPartidasInicializar(ControlaPartidas* ptrControla, int numIntentos, char* pathAArchivo){
 	if(ptrControla == NULL)
 		return;
@@ -20,13 +21,21 @@ void controlaPartidasEmpezar(ControlaPartidas* controlador){
 	size_t len = 25;
 	int aux = getline(&ptrPalabra, &len, controlador->ptrArchivo);
 	while (aux != EOF){
-		ahorcadoInicializar(&(controlador->partidaActual), palabra,controlador->numIntentos);
-		int aux = ahorcadoJugar(&controlador->partidaActual);
-		if (aux == VICTORIA)
+		ahorcadoInicializar(&(controlador->partidaActual), palabra, controlador->numIntentos);
+		int retJugar = ahorcadoJugar(&controlador->partidaActual);
+		if (retJugar == VICTORIA)
 			controlador->partidasGanadas++;
 		else
 			controlador->partidasPerdidas++;
 		aux = getline(&ptrPalabra, &len, controlador->ptrArchivo);
 	}
+}
 
+void controlaPartidasResumen(ControlaPartidas* controlador){
+	if(controlador == NULL)
+		return;
+
+	printf("Resumen:\n");
+	printf("\tVictorias: %i\n", controlador->partidasGanadas);
+	printf("\tDerrotas: %i\n", controlador->partidasPerdidas);
 }
