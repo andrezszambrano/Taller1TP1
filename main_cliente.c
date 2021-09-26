@@ -8,7 +8,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <arpa/inet.h>
-
+#include "socket.h"
 #define EXITO 0
 #define ERROR_SOCKET -1
 #define MAX_QUEUE 1
@@ -16,6 +16,7 @@
 #define VICTORIA 2
 #define DERROTA 1
 #define SIN_NOVEDADES 0
+
 int socket_iniciarCliente(char* host , char* puerto);
 
 void imprimirMensajeDelServidor(int numIntentos, char* restante, int lenPalabra);
@@ -36,12 +37,12 @@ int main(int argc, char* argv[]){
 		printf("Error, debe enviar primero el host y después el número de puerto a conectarse.\n");
 		return 0;
 	}
-
-	int fdSocketServidor = socket_iniciarCliente(argv[1], argv[2]);
-	if(fdSocketServidor == ERROR)
+	socket_t socketServidor;
+	int aux = socketInicializarYConectarCliente(&socketServidor, argv[1], argv[2]);
+	if(aux == ERROR)
 		return 0;
 
-	int aux = recibirMensaje(fdSocketServidor);
+	aux = recibirMensaje(fdSocketServidor);
 	while(aux != VICTORIA && aux != DERROTA){	
 		enviarMensaje(fdSocketServidor);
 		aux = recibirMensaje(fdSocketServidor);
@@ -159,25 +160,5 @@ int socket_iniciarCliente(char* host , char* puerto){
     	return ERROR;
     }
     freeaddrinfo(ptraddr);
-	/*
-	int val = 1;
-   	aux = setsockopt(fdServidor, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
-	if(aux != EXITO){
-		printf("Error asignandole un nombre al socket\n");
-		freeaddrinfo(ptraddr);
-		return ERROR;
-	}
-	aux = bind(fdServidor, ptraddr->ai_addr, ptraddr->ai_addrlen);
-	if(aux != EXITO){
-		printf("Error asignandole un nombre al socket\n");
-		freeaddrinfo(ptraddr);
-		return ERROR;
-	}
-	freeaddrinfo(ptraddr);
-	aux = listen(fdServidor, MAX_QUEUE);
-	if(aux != EXITO){
-		printf("Error en la función listen\n");
-		return ERROR;
-	}*/
 	return fdCliente;
 }

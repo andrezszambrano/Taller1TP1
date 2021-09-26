@@ -9,7 +9,9 @@ typedef struct {
     int fd;
 } socket_t;
 
-int socketInicializarBindYListen(socket_t* socket, const char* host, const char* servicio);
+int socketInicializarYConectarCliente(socket_t* socketCliente, const char* host, const char* servicio);
+
+int socketInicializarServidorConBindYListen(socket_t* socketServidor, const char* host, const char* servicio);
 
 void socketDestruir(socket_t* socket);
 

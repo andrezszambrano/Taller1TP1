@@ -27,7 +27,7 @@ int main(int argc, char* argv[]){
 	int cantIntentos = (int)strtol(argv[2], NULL, 10);
 	controlaPartidasInicializar(&controlador, cantIntentos, argv[3]);
 	socket_t socketServidor;
-	int aux = socketInicializarBindYListen(&socketServidor, NULL, argv[1]);
+	int aux = socketInicializarServidorConBindYListen(&socketServidor, NULL, argv[1]);
 	if(aux == ERROR)
 		return 0;	
 	char* restante;

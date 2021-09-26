@@ -11,7 +11,39 @@
 #define ERROR -1
 #define MAX_QUEUE 8
 
-int socketInicializarBindYListen(socket_t* socketServidor, const char* host, const char* servicio){
+int socketInicializarYConectarCliente(socket_t* socketCliente, const char* host, const char* servicio){
+	struct addrinfo baseaddr;  
+	struct addrinfo* ptraddr;
+	memset(&baseaddr, 0, sizeof(struct addrinfo));
+	baseaddr.ai_socktype = SOCK_STREAM;
+	baseaddr.ai_family = AF_UNSPEC; //Ipv4 o Ipv6 
+	baseaddr.ai_flags = AI_PASSIVE; //Las direcciones dadas podrán usar bind() y accept()
+	int aux = getaddrinfo(NULL, servicio, &baseaddr, &ptraddr);
+	if(aux != EXITO){
+		printf("Error: %s\n", strerror(errno));
+		printf("Error al intentar obtener las direcciones\n");
+		return ERROR;
+	}
+	int fdDelServidor = socket(ptraddr->ai_family, ptraddr->ai_socktype, ptraddr->ai_protocol);
+	if(fdDelServidor == ERROR){
+		printf("Error: %s\n", strerror(errno));
+		printf("Error creando el socket del servidor\n");
+		freeaddrinfo(ptraddr);
+		return ERROR;
+	}
+	aux = connect(fdDelServidor, ptraddr->ai_addr, ptraddr->ai_addrlen);
+    if (aux == -1) {
+        printf("Error al conectarse al puerto\n");
+        close(fdDelServidor);
+        freeaddrinfo(ptraddr);
+    	return ERROR;
+    }
+    freeaddrinfo(ptraddr);
+    socketCliente->fd = fdDelServidor;
+	return EXITO;
+}
+
+int socketInicializarServidorConBindYListen(socket_t* socketServidor, const char* host, const char* servicio){
 	struct addrinfo baseaddr;  
 	struct addrinfo* ptraddr;
 	memset(&baseaddr, 0, sizeof(struct addrinfo));
