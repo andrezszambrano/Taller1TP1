@@ -4,21 +4,16 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
 #include <netdb.h>
 #include "ahorcado.h"
 #include "controla_partidas.h"
-#include <arpa/inet.h>
+#include "socket.h"
 #include <stdint.h>
 #define EXITO 0
-#define ERROR_SOCKET -1
-#define MAX_QUEUE 1
 #define ERROR -1
 #define SIN_PALABRAS -2
 #define VICTORIA 150
 #define DERROTA -1
-int socket_iniciarServidor(char* puerto);
 
 void enviarMensaje(int fdSocketCliente, int cantIntentos, uint16_t largoPalabra, char** infoRestante);
 
@@ -31,34 +26,33 @@ int main(int argc, char* argv[]){
 	ControlaPartidas controlador;
 	int cantIntentos = (int)strtol(argv[2], NULL, 10);
 	controlaPartidasInicializar(&controlador, cantIntentos, argv[3]);
-	int fdSocketServidor = socket_iniciarServidor(argv[1]);
-	if(fdSocketServidor == ERROR)
-		return 0;
+	socket_t socketServidor;
+	int aux = socketInicializarBindYListen(&socketServidor, NULL, argv[1]);
+	if(aux == ERROR)
+		return 0;	
 	char* restante;
 	int16_t largoPalabra = (int16_t)controlaPartidasEmpezarNuevaPartida(&controlador, &restante);
 	while(largoPalabra != SIN_PALABRAS){
-		int fdSocketCliente = accept(fdSocketServidor, NULL, NULL);
-		if(fdSocketCliente == ERROR)
+		socket_t socketCliente;
+		aux = socketAceptar(&socketServidor, &socketCliente);
+		if(aux == ERROR)
 			return 0;
-		enviarMensaje(fdSocketCliente, cantIntentos, largoPalabra, &restante);
+		enviarMensaje(socketCliente.fd, cantIntentos, largoPalabra, &restante);
 		char caracter;
-		recv(fdSocketCliente, &caracter, sizeof(char), 0);
+		recv(socketCliente.fd, &caracter, sizeof(char), 0);
 		int intentosRestantes = controlaPartidasJugarCaracter(&controlador, &caracter);
 		while(intentosRestantes != VICTORIA && intentosRestantes != DERROTA){
-			enviarMensaje(fdSocketCliente, intentosRestantes, largoPalabra, &restante);
-			recv(fdSocketCliente, &caracter, sizeof(char), 0);
+			enviarMensaje(socketCliente.fd, intentosRestantes, largoPalabra, &restante);
+			recv(socketCliente.fd, &caracter, sizeof(char), 0);
 			intentosRestantes = controlaPartidasJugarCaracter(&controlador, &caracter);
 		}
-		enviarMensaje(fdSocketCliente, intentosRestantes, largoPalabra, &restante);
-		shutdown(fdSocketCliente, SHUT_RDWR);
-		close(fdSocketCliente);
+		enviarMensaje(socketCliente.fd, intentosRestantes, largoPalabra, &restante);
+		socketDestruir(&socketCliente);
 		largoPalabra = (int16_t)controlaPartidasEmpezarNuevaPartida(&controlador, &restante);
 	}		
 	controlaPartidasResumen(&controlador);
 	controlaPartidasDestruir(&controlador);
-	shutdown(fdSocketServidor, SHUT_RDWR);
-	close(fdSocketServidor);
-
+	socketDestruir(&socketServidor);
 	return 0;
 }
 
@@ -83,46 +77,4 @@ void enviarMensaje(int fdSocketCliente, int cantIntentos, uint16_t largoPalabra,
 		escritos = escritos + aux;
 	}
 	
-}
-
-int socket_iniciarServidor(char* puerto){
-	struct addrinfo baseaddr;  
-	struct addrinfo* ptraddr;
-	memset(&baseaddr, 0, sizeof(struct addrinfo));
-	baseaddr.ai_socktype = SOCK_STREAM;
-	baseaddr.ai_family = AF_UNSPEC; //Ipv4 o Ipv6 
-	baseaddr.ai_flags = AI_PASSIVE; //Las direcciones dadas podrán usar bind() y accept()
-	int aux = getaddrinfo(NULL, puerto, &baseaddr, &ptraddr);
-	if(aux != EXITO){
-		printf("Error al intentar obtener las direcciones\n");
-		return ERROR;
-	}
-	int fdServidor = socket(ptraddr->ai_family, ptraddr->ai_socktype, ptraddr->ai_protocol);
-	if(fdServidor == ERROR_SOCKET){
-		printf("Error creando el socket del servidor\n");
-		freeaddrinfo(ptraddr);
-		return ERROR;
-	}
-	int val = 1;
-   	aux = setsockopt(fdServidor, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
-	if(aux != EXITO){
-		printf("Error: %s\n", strerror(errno));
-		printf("Error asignandole un nombre al socket\n");
-		freeaddrinfo(ptraddr);
-		return ERROR;
-	}
-	aux = bind(fdServidor, ptraddr->ai_addr, ptraddr->ai_addrlen);
-	if(aux != EXITO){
-		printf("Error: %s\n", strerror(errno));
-		printf("Error asignandole un nombre al socket\n");
-		freeaddrinfo(ptraddr);
-		return ERROR;
-	}
-	freeaddrinfo(ptraddr);
-	aux = listen(fdServidor, MAX_QUEUE);
-	if(aux != EXITO){
-		printf("Error en la función listen\n");
-		return ERROR;
-	}
-	return fdServidor;
 }
