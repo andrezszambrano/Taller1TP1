@@ -50,13 +50,7 @@ int main(int argc, char* argv[]){
 		
 		char caracter = cicloEnviarInfoYRecibirCaracter(&socketCliente, cantIntentos, largoPalabra, &restante);
 		int intentosRestantes = controlaPartidasJugarCaracter(&controlador, caracter);
-		//enviarMensaje(socketCliente.fd, cantIntentos, largoPalabra, &restante);
-		//char caracter;
-		//recv(socketCliente.fd, &caracter, sizeof(char), 0);
-		//int intentosRestantes = controlaPartidasJugarCaracter(&controlador, &caracter);
 		while(intentosRestantes != VICTORIA && intentosRestantes != DERROTA){
-			//enviarMensaje(socketCliente.fd, intentosRestantes, largoPalabra, &restante);
-			//recv(socketCliente.fd, &caracter, sizeof(char), 0);
 			char caracter = cicloEnviarInfoYRecibirCaracter(&socketCliente, intentosRestantes, largoPalabra, &restante);
 			intentosRestantes = controlaPartidasJugarCaracter(&controlador, caracter);
 		}

@@ -19,8 +19,6 @@
 #define UN_BYTE 1
 #define DOS_BYTES 2
 
-int socket_iniciarCliente(char* host , char* puerto);
-
 void imprimirMensajeDelServidor(int numIntentos, char* restante, int lenPalabra);
 
 int recibirMensaje(socket_t* socket);
@@ -113,26 +111,6 @@ int recibirMensaje(socket_t* socket){
 	}
 	imprimirMensajeDelServidor(numIntentos, palabraRestante, lenPalabra);
 	return SIN_NOVEDADES;
-	/*int leidos = 0;
-	while(leidos < 1){ 
-		int aux = recv(fdSocketServidor, &caracter, sizeof(char) - leidos, 0);
-		leidos = leidos + aux;
-	}
-	
-	uint16_t lenPalabraBE;
-	leidos = 0;
-	while(leidos < 2){ 
-		int aux = recv(fdSocketServidor, &lenPalabraBE, 2*sizeof(char) - leidos, 0);
-		leidos = leidos + aux;
-	}
-	int lenPalabra = ntohs(lenPalabraBE);	
-	char palabraRestante[lenPalabra];
-	leidos = 0;
-	while(leidos < lenPalabra){
-		int aux = recv(fdSocketServidor, palabraRestante + leidos, lenPalabra*sizeof(char) - leidos, 0);
-		leidos = leidos + aux;
-	}
-	*/
 }
 
 void imprimirMensajeDeDerrota(char* restante){
@@ -152,34 +130,4 @@ void imprimirMensajeDelServidor(int numIntentos, char* restante, int lenPalabra)
 	
 	printf("Ingrese letra:\n");
 
-}
-
-int socket_iniciarCliente(char* host , char* puerto){
-	struct addrinfo baseaddr;  
-	struct addrinfo* ptraddr;
-	memset(&baseaddr, 0, sizeof(struct addrinfo));
-	baseaddr.ai_socktype = SOCK_STREAM;
-	baseaddr.ai_family = AF_UNSPEC; //Ipv4 o Ipv6 
-	baseaddr.ai_flags = 0;
-	int aux = getaddrinfo(host, puerto, &baseaddr, &ptraddr);
-	if(aux != EXITO){
-		printf("Error al intentar obtener las direcciones\n");
-		return ERROR;
-	}
-	int fdCliente = socket(ptraddr->ai_family, ptraddr->ai_socktype, ptraddr->ai_protocol);
-
-	if(fdCliente == ERROR_SOCKET){
-		printf("Error creando el socket del servidor\n");
-		freeaddrinfo(ptraddr);
-		return ERROR;
-	}
-	aux = connect(fdCliente, ptraddr->ai_addr, ptraddr->ai_addrlen);
-    if (aux == -1) {
-        printf("Error al conectarse al puerto\n");
-        close(fdCliente);
-        freeaddrinfo(ptraddr);
-    	return ERROR;
-    }
-    freeaddrinfo(ptraddr);
-	return fdCliente;
 }
