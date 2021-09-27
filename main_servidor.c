@@ -14,8 +14,18 @@
 #define SIN_PALABRAS -2
 #define VICTORIA 150
 #define DERROTA -1
+#define UN_BYTE 1
+#define DOS_BYTES 2
 
-void enviarMensaje(int fdSocketCliente, int cantIntentos, uint16_t largoPalabra, char** infoRestante);
+char cicloEnviarInfoYRecibirCaracter(socket_t* socket, int cantIntentos, uint16_t largoPalabra, char** infoRestante);
+
+int enviarInfoConProtocolo(socket_t* socket, int cantIntentos, uint16_t largoPalabra, char** infoRestante);
+
+int enviarFlagTerminaPartidasEIntentosRestantes(socket_t* socket, int cantIntentos);
+
+int enviarLargoDePalabra(socket_t* socket, int largoPalabra);
+
+int enviarPalabraRestante(socket_t* socket, int largoPalabra, char** infoRestante);
 
 int main(int argc, char* argv[]){
 	
@@ -37,16 +47,20 @@ int main(int argc, char* argv[]){
 		aux = socketAceptar(&socketServidor, &socketCliente);
 		if(aux == ERROR)
 			return 0;
-		enviarMensaje(socketCliente.fd, cantIntentos, largoPalabra, &restante);
-		char caracter;
-		recv(socketCliente.fd, &caracter, sizeof(char), 0);
-		int intentosRestantes = controlaPartidasJugarCaracter(&controlador, &caracter);
+		
+		char caracter = cicloEnviarInfoYRecibirCaracter(&socketCliente, cantIntentos, largoPalabra, &restante);
+		int intentosRestantes = controlaPartidasJugarCaracter(&controlador, caracter);
+		//enviarMensaje(socketCliente.fd, cantIntentos, largoPalabra, &restante);
+		//char caracter;
+		//recv(socketCliente.fd, &caracter, sizeof(char), 0);
+		//int intentosRestantes = controlaPartidasJugarCaracter(&controlador, &caracter);
 		while(intentosRestantes != VICTORIA && intentosRestantes != DERROTA){
-			enviarMensaje(socketCliente.fd, intentosRestantes, largoPalabra, &restante);
-			recv(socketCliente.fd, &caracter, sizeof(char), 0);
-			intentosRestantes = controlaPartidasJugarCaracter(&controlador, &caracter);
+			//enviarMensaje(socketCliente.fd, intentosRestantes, largoPalabra, &restante);
+			//recv(socketCliente.fd, &caracter, sizeof(char), 0);
+			char caracter = cicloEnviarInfoYRecibirCaracter(&socketCliente, intentosRestantes, largoPalabra, &restante);
+			intentosRestantes = controlaPartidasJugarCaracter(&controlador, caracter);
 		}
-		enviarMensaje(socketCliente.fd, intentosRestantes, largoPalabra, &restante);
+		enviarInfoConProtocolo(&socketCliente, intentosRestantes, largoPalabra, &restante);
 		socketDestruir(&socketCliente);
 		largoPalabra = (int16_t)controlaPartidasEmpezarNuevaPartida(&controlador, &restante);
 	}		
@@ -56,25 +70,48 @@ int main(int argc, char* argv[]){
 	return 0;
 }
 
-void enviarMensaje(int fdSocketCliente, int cantIntentos, uint16_t largoPalabra, char** infoRestante){
+char cicloEnviarInfoYRecibirCaracter(socket_t* socket, int cantIntentos, uint16_t largoPalabra, char** infoRestante){
+	int aux = enviarInfoConProtocolo(socket, cantIntentos, largoPalabra, infoRestante);
+	if(aux == ERROR)
+		return ERROR;
+	char caracter;
+	aux = socketRecibir(socket, &caracter, sizeof(int8_t));
+	if(aux != UN_BYTE){
+		printf("Error: no se recibió el byte correspondiente.\n");
+		return ERROR;
+	}
+	return caracter;
+}
+
+int enviarInfoConProtocolo(socket_t* socket, int cantIntentos, uint16_t largoPalabra, char** infoRestante){
+	int aux = enviarFlagTerminaPartidasEIntentosRestantes(socket, cantIntentos);
+	if(aux != UN_BYTE){
+		printf("Error: No se envió el primer byte.\n");
+		return ERROR;
+	}
+	aux = enviarLargoDePalabra(socket, largoPalabra);
+	if(aux != DOS_BYTES){
+		printf("Error: No se enviaron los dos bytes correspondientes.\n");
+		return ERROR;
+	}
+	aux = enviarPalabraRestante(socket, largoPalabra, infoRestante);
+	if(aux != largoPalabra){
+		printf("Error: No se enviaron los n bytes correspondientes al largo de la palabra.\n");
+	}
+	return EXITO;
+}
+
+int enviarFlagTerminaPartidasEIntentosRestantes(socket_t* socket, int cantIntentos){
 	if(cantIntentos == DERROTA)
 		cantIntentos = 128;
 	unsigned char caracter = cantIntentos;
-	int escritos = 0;
-	while(escritos < 1){
-		int aux = send(fdSocketCliente, &caracter, sizeof(char), MSG_NOSIGNAL);
-		escritos = escritos + aux;
-	}
-	uint16_t largoPalabraBE = htons(largoPalabra); 
-	escritos = 0;
-	while(escritos < 2){
-		int aux = send(fdSocketCliente, &largoPalabraBE, 2*sizeof(char), MSG_NOSIGNAL);
-		escritos = escritos + aux;	
-	}
-	escritos = 0;
-	while(escritos < largoPalabra){
-		int aux = send(fdSocketCliente, *infoRestante + escritos, largoPalabra*sizeof(char) - escritos, MSG_NOSIGNAL);		
-		escritos = escritos + aux;
-	}
-	
+	return socketEnviar(socket, &caracter, sizeof(int8_t));
+}
+
+int enviarLargoDePalabra(socket_t* socket, int largoPalabra){
+	return socketEnviarShort(socket, largoPalabra);
+}
+
+int enviarPalabraRestante(socket_t* socket, int largoPalabra, char** infoRestante){
+	return socketEnviar(socket, *infoRestante, largoPalabra);
 }

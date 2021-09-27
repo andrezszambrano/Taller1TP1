@@ -37,13 +37,13 @@ int controlaPartidasEmpezarNuevaPartida(ControlaPartidas* controlador, char** in
 		return SIN_PALABRAS_RESTANTES;
 }
 
-int controlaPartidasJugarCaracter(ControlaPartidas* controlador, char* caracter){
+int controlaPartidasJugarCaracter(ControlaPartidas* controlador, char caracter){
 	if(!controlador)
 		return ERROR;
 	if(!controlador->partidaEnJuego)
 		return ERROR;
 
-	int aux = ahorcadoJugarCaracter(&(controlador->partidaActual), *caracter);
+	int aux = ahorcadoJugarCaracter(&(controlador->partidaActual), caracter);
 
 	if(aux != VICTORIA && aux != DERROTA)
 		return aux;

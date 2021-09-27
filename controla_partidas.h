@@ -28,7 +28,7 @@ int controlaPartidasEmpezarNuevaPartida(ControlaPartidas* controlador, char** in
 //controlador->partidaEnJuego = false, devuelve error. Se regresa -1 sí se acabaron los intentos
 //después de validar el caracter, 150 sí se ganó la partida, o la cantidad de intentos restantes
 //sí no hay novedades.
-int controlaPartidasJugarCaracter(ControlaPartidas* controlador, char* caracter);
+int controlaPartidasJugarCaracter(ControlaPartidas* controlador, char caracter);
 
 //Da el resumen de victorias y derrotas del controlador.
 void controlaPartidasResumen(ControlaPartidas* controlador);

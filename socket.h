@@ -17,10 +17,12 @@ void socketDestruir(socket_t* socket);
 
 int socketAceptar(socket_t* socketServidor, socket_t* socketCliente);
 
-void socketConectar(socket_t* socket, const char* host, const char* service);
+ssize_t socketEnviar(socket_t* socket, void* buffer, size_t length);
 
-ssize_t socketEnviar(socket_t* socket, const char* buffer, size_t length);
+ssize_t socketEnviarShort(socket_t* socket, int numAEnviar);
 
-ssize_t socketRecibir(socket_t* socket, char* buffer, size_t length);
+ssize_t socketRecibir(socket_t* socket, void* buffer, size_t length);
+
+ssize_t socketRecibirShort(socket_t* socket, int* numARecibir);
 
 #endif

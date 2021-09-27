@@ -16,14 +16,16 @@
 #define VICTORIA 2
 #define DERROTA 1
 #define SIN_NOVEDADES 0
+#define UN_BYTE 1
+#define DOS_BYTES 2
 
 int socket_iniciarCliente(char* host , char* puerto);
 
 void imprimirMensajeDelServidor(int numIntentos, char* restante, int lenPalabra);
 
-int recibirMensaje(int fdSocketServidor);
+int recibirMensaje(socket_t* socket);
 
-void enviarMensaje(int fdSocketServidor);
+int enviarMensaje(socket_t* socket);
 
 void pedirCaracter(char* caracter);
 
@@ -42,17 +44,16 @@ int main(int argc, char* argv[]){
 	if(aux == ERROR)
 		return 0;
 
-	aux = recibirMensaje(fdSocketServidor);
+	aux = recibirMensaje(&socketServidor);
 	while(aux != VICTORIA && aux != DERROTA){	
-		enviarMensaje(fdSocketServidor);
-		aux = recibirMensaje(fdSocketServidor);
+		aux = enviarMensaje(&socketServidor);
+		aux = recibirMensaje(&socketServidor);
 	}
 	if(aux == VICTORIA)
 		printf("Victoria!!!\n");
 	else
 		printf("Derrota \n");
-	shutdown(fdSocketServidor, SHUT_RDWR);
-	close(fdSocketServidor);
+	socketDestruir(&socketServidor);	
 	return 0;
 }
 
@@ -72,24 +73,52 @@ void pedirCaracter(char* caracter){
 
 }
 
-void enviarMensaje(int fdSocketServidor){
+int enviarMensaje(socket_t* socket){
 	char caracter;
 	pedirCaracter(&caracter);
-	int escritos = 0;
-	while(escritos < 1){
-		int aux = send(fdSocketServidor, &caracter, sizeof(char), MSG_NOSIGNAL);
-		escritos = escritos + aux;
+	int aux = socketEnviar(socket, &caracter, sizeof(int8_t));
+	if(aux != UN_BYTE){
+		printf("No se envió el byte correspondiente.\n");
+		return ERROR;
 	}
+	return EXITO;
 }
 
-int recibirMensaje(int fdSocketServidor){
+int recibirMensaje(socket_t* socket){
 	unsigned char caracter;
-	int leidos = 0;
+	int aux = socketRecibir(socket, &caracter, sizeof(int8_t));
+	if(aux == ERROR){
+		printf("No se recibió el byte correspondiente.\n");
+		return ERROR;
+	}
+	int numIntentos = caracter;
+	int lenPalabra;
+	aux = socketRecibirShort(socket, &lenPalabra);
+	if(aux != DOS_BYTES){
+		printf("No se recibieron los dos bytes correspondientes.\n");
+		return ERROR;
+	}
+	char palabraRestante[lenPalabra];
+	aux = socketRecibir(socket, palabraRestante, lenPalabra);
+	if(aux != lenPalabra){
+		printf("No se leyeron los n bytes correspondientes a la palabra.\n");
+		return ERROR;
+	}
+	if(numIntentos == 128){//La partida acabó por derrota
+		imprimirMensajeDeDerrota(palabraRestante);
+		return DERROTA;
+	}else if(numIntentos > 128){//La partida terminó por victoria
+		imprimirMensajeDeVictoria();
+		return VICTORIA;
+	}
+	imprimirMensajeDelServidor(numIntentos, palabraRestante, lenPalabra);
+	return SIN_NOVEDADES;
+	/*int leidos = 0;
 	while(leidos < 1){ 
 		int aux = recv(fdSocketServidor, &caracter, sizeof(char) - leidos, 0);
 		leidos = leidos + aux;
 	}
-	int numIntentos = caracter;
+	
 	uint16_t lenPalabraBE;
 	leidos = 0;
 	while(leidos < 2){ 
@@ -103,15 +132,7 @@ int recibirMensaje(int fdSocketServidor){
 		int aux = recv(fdSocketServidor, palabraRestante + leidos, lenPalabra*sizeof(char) - leidos, 0);
 		leidos = leidos + aux;
 	}
-	if(numIntentos == 128){//La partida acabó por derrota
-		imprimirMensajeDeDerrota(palabraRestante);
-		return DERROTA;
-	}else if(numIntentos > 128){//La partida terminó por victoria
-		imprimirMensajeDeVictoria();
-		return VICTORIA;
-	}
-	imprimirMensajeDelServidor(numIntentos, palabraRestante, leidos);
-	return SIN_NOVEDADES;
+	*/
 }
 
 void imprimirMensajeDeDerrota(char* restante){

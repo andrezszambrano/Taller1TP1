@@ -97,16 +97,52 @@ int socketAceptar(socket_t* socketServidor, socket_t* socketCliente){
 	return EXITO; 
 }
 
-void socketConectar(socket_t *socket, const char *host, const char *service){
-
+ssize_t socketEnviar(socket_t* socket, void* buffer, size_t length){
+	if(!socket)
+		return ERROR;
+	int escritos = 0;
+	while(escritos < length){
+		int aux = send(socket->fd, buffer + escritos, length*sizeof(int8_t) - escritos, MSG_NOSIGNAL);
+		escritos = escritos + aux;
+	}
+	return escritos;
 }
 
-ssize_t socketEnviar(socket_t *socket, const char *buffer, size_t length){
-
+ssize_t socketEnviarShort(socket_t* socket, int numAEnviar){
+	if(!socket)
+		return ERROR;
+	uint16_t numBE = htons(numAEnviar); //Número estará en big endian 
+	int escritos = 0;
+	while(escritos < 2){
+		int aux = send(socket->fd, &numBE, 2*sizeof(int8_t), MSG_NOSIGNAL);
+		escritos = escritos + aux;	
+	}
+	return escritos;
 }
 
-ssize_t socketRecibir(socket_t *socket, char *buffer, size_t length){
 
+ssize_t socketRecibir(socket_t* socket, void* buffer, size_t length){
+	if(!socket)
+		return ERROR;
+	int leidos = 0;
+	while(leidos < length){
+		int aux = recv(socket->fd, buffer + leidos, length*sizeof(int8_t) - leidos, 0);
+		leidos = leidos + aux;
+	}
+	return leidos;
+}
+
+ssize_t socketRecibirShort(socket_t* socket, int* numARecibir){
+	if(!socket)
+		return ERROR;
+	int leidos = 0;
+	uint16_t numBE; 		
+	while(leidos < 2){
+		int aux = recv(socket->fd, &numBE, 2*sizeof(int8_t), 0);
+		leidos = leidos + aux;	
+	}
+	*numARecibir = ntohs(numBE); //Número pasará de BE a lo que maneje la pc (ya sea LE o BE) 
+	return leidos;
 }
 
 void socketDestruir(socket_t* socket){
