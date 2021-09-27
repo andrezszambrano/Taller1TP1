@@ -1,4 +1,3 @@
-#define _POSIX_C_SOURCE 200112L
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
@@ -21,7 +20,8 @@
 #define MAX_PALABRA 25
 void vaciarBuffer();
 
-void imprimirMensajeDelServidor(int numIntentos, char* restante, int lenPalabra);
+void imprimirMensajeDelServidor(int numIntentos, char* restante, 
+								int lenPalabra);
 
 int enviarCaracteresYRecibirMensaje(socket_t* socket);
 
@@ -38,11 +38,13 @@ void imprimirMensajeDeVictoria();
 int main(int argc, char* argv[]){
 	
 	if(argc < 3){
-		printf("Error, debe enviar primero el host y después el número de puerto a conectarse.\n");
+		printf("Error, debe enviar primero el host y después el número 
+				de puerto a conectarse.\n");
 		return 0;
 	}
 	socket_t socketServidor;
-	int aux = socketInicializarYConectarCliente(&socketServidor, argv[1], argv[2]);
+	int aux = socketInicializarYConectarCliente(&socketServidor, argv[1], 
+												argv[2]);
 	if(aux == ERROR)
 		return 0;
 
@@ -156,7 +158,8 @@ void imprimirMensajeDeVictoria(){
 	printf("Ganaste!!\n");
 }
 
-void imprimirMensajeDelServidor(int numIntentos, char* restante, int lenPalabra){
+void imprimirMensajeDelServidor(int numIntentos, char* restante,
+								 int lenPalabra){
 	printf("Palabra secreta: ");
 	for(int i = 0; i < lenPalabra; i++)
 		printf("%c", restante[i]);

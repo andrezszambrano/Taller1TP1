@@ -17,10 +17,12 @@ void imprimirMensajeDeFinDePartida(Ahorcado* ahorcado, int aux){
 	if(aux == VICTORIA)
 		printf("Ganaste!!\n");
 	else
-		printf("Perdiste! La palabra secreta era: %s\n",ahorcado->palabraAAdivinar);
+		printf("Perdiste! La palabra secreta era: %s\n",
+				ahorcado->palabraAAdivinar);
 }
 
-int ahorcadoInicializar(Ahorcado* ahorcado, char* palabra, int numIntentos, char** infoRestante){
+int ahorcadoInicializar(Ahorcado* ahorcado, char* palabra, 
+						int numIntentos, char** infoRestante){
 	if(ahorcado == NULL)
 		return ERROR;
 	ahorcado->numIntentos = numIntentos;

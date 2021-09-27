@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 200112L
 #include "socket.h"
 #include <errno.h>
 #include <string.h>
@@ -11,20 +12,22 @@
 #define ERROR -1
 #define MAX_QUEUE 8
 
-int socketInicializarYConectarCliente(socket_t* socketCliente, const char* host, const char* servicio){
+int socketInicializarYConectarCliente(socket_t* socketCliente, const char* host,
+										 const char* servicio){
 	struct addrinfo baseaddr;  
 	struct addrinfo* ptraddr;
 	memset(&baseaddr, 0, sizeof(struct addrinfo));
 	baseaddr.ai_socktype = SOCK_STREAM;
 	baseaddr.ai_family = AF_UNSPEC; //Ipv4 o Ipv6 
-	baseaddr.ai_flags = AI_PASSIVE; //Las direcciones dadas podrán usar bind() y accept()
+	baseaddr.ai_flags = 0; //Ningún flag ya que es un cliente
 	int aux = getaddrinfo(NULL, servicio, &baseaddr, &ptraddr);
 	if(aux != EXITO){
 		printf("Error: %s\n", strerror(errno));
 		printf("Error al intentar obtener las direcciones\n");
 		return ERROR;
 	}
-	int fdDelServidor = socket(ptraddr->ai_family, ptraddr->ai_socktype, ptraddr->ai_protocol);
+	int fdDelServidor = socket(ptraddr->ai_family, ptraddr->ai_socktype,
+								 ptraddr->ai_protocol);
 	if(fdDelServidor == ERROR){
 		printf("Error: %s\n", strerror(errno));
 		printf("Error creando el socket del servidor\n");
@@ -43,20 +46,24 @@ int socketInicializarYConectarCliente(socket_t* socketCliente, const char* host,
 	return EXITO;
 }
 
-int socketInicializarServidorConBindYListen(socket_t* socketServidor, const char* host, const char* servicio){
+int socketInicializarServidorConBindYListen(socket_t* socketServidor, 
+											const char* host, 
+											const char* servicio){
 	struct addrinfo baseaddr;  
 	struct addrinfo* ptraddr;
 	memset(&baseaddr, 0, sizeof(struct addrinfo));
 	baseaddr.ai_socktype = SOCK_STREAM;
 	baseaddr.ai_family = AF_UNSPEC; //Ipv4 o Ipv6 
-	baseaddr.ai_flags = AI_PASSIVE; //Las direcciones dadas podrán usar bind() y accept()
+	baseaddr.ai_flags = AI_PASSIVE; //Las direcciones dadas podrán usar bind() 
+	//y accept()
 	int aux = getaddrinfo(NULL, servicio, &baseaddr, &ptraddr);
 	if(aux != EXITO){
 		printf("Error: %s\n", strerror(errno));
 		printf("Error al intentar obtener las direcciones\n");
 		return ERROR;
 	}
-	int fdServidor = socket(ptraddr->ai_family, ptraddr->ai_socktype, ptraddr->ai_protocol);
+	int fdServidor = socket(ptraddr->ai_family, ptraddr->ai_socktype, 
+							ptraddr->ai_protocol);
 	if(fdServidor == ERROR){
 		printf("Error: %s\n", strerror(errno));
 		printf("Error creando el socket del servidor\n");
@@ -102,7 +109,8 @@ ssize_t socketEnviar(socket_t* socket, void* buffer, size_t length){
 		return ERROR;
 	int escritos = 0;
 	while(escritos < length){
-		int aux = send(socket->fd, buffer + escritos, length*sizeof(int8_t) - escritos, MSG_NOSIGNAL);
+		int aux = send(socket->fd, buffer + escritos,
+						 length*sizeof(int8_t) - escritos, MSG_NOSIGNAL);
 		escritos = escritos + aux;
 	}
 	return escritos;
@@ -126,7 +134,8 @@ ssize_t socketRecibir(socket_t* socket, void* buffer, size_t length){
 		return ERROR;
 	int leidos = 0;
 	while(leidos < length){
-		int aux = recv(socket->fd, buffer + leidos, length*sizeof(int8_t) - leidos, 0);
+		int aux = recv(socket->fd, buffer + leidos,
+					 length*sizeof(int8_t) - leidos, 0);
 		leidos = leidos + aux;
 	}
 	return leidos;
@@ -141,7 +150,8 @@ ssize_t socketRecibirShort(socket_t* socket, int* numARecibir){
 		int aux = recv(socket->fd, &numBE, 2*sizeof(int8_t), 0);
 		leidos = leidos + aux;	
 	}
-	*numARecibir = ntohs(numBE); //Número pasará de BE a lo que maneje la pc (ya sea LE o BE) 
+	*numARecibir = ntohs(numBE); //Número pasará de BE a lo que maneje la pc
+	//(ya sea LE o BE) 
 	return leidos;
 }
 

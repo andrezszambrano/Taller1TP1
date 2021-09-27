@@ -8,7 +8,8 @@
 #define ERROR -10
 #define FIN_DE_PARTIDA 1
 #define MAX_PALABRA 25
-void controlaPartidasInicializar(ControlaPartidas* ptrControla, int numIntentos, char* pathAArchivo){
+void controlaPartidasInicializar(ControlaPartidas* ptrControla, int numIntentos,
+								 char* pathAArchivo){
 	if(!ptrControla)
 		return;
 	ptrControla->numIntentos = numIntentos;
@@ -20,7 +21,8 @@ void controlaPartidasInicializar(ControlaPartidas* ptrControla, int numIntentos,
 		printf("Error al abrir el archivo.");
 }	
 
-int controlaPartidasEmpezarNuevaPartida(ControlaPartidas* controlador, char** infoRestante){
+int controlaPartidasEmpezarNuevaPartida(ControlaPartidas* controlador,
+										 char** infoRestante){
 	if(!controlador)
 		return ERROR;
 	if(controlador->partidaEnJuego)
@@ -30,7 +32,9 @@ int controlaPartidasEmpezarNuevaPartida(ControlaPartidas* controlador, char** in
 	size_t len = MAX_PALABRA;
 	int aux = getline(&ptrPalabra, &len, controlador->ptrArchivo);
 	if (aux != EOF){
-		int lenPalabra = ahorcadoInicializar(&(controlador->partidaActual), palabra, controlador->numIntentos, infoRestante);
+		int lenPalabra = ahorcadoInicializar(&(controlador->partidaActual),
+											 palabra, controlador->numIntentos,
+											  infoRestante);
 		controlador->partidaEnJuego = true; 
 		return lenPalabra;
 	}else
