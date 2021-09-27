@@ -18,12 +18,16 @@
 #define SIN_NOVEDADES 0
 #define UN_BYTE 1
 #define DOS_BYTES 2
+#define MAX_PALABRA 25
+void vaciarBuffer();
 
 void imprimirMensajeDelServidor(int numIntentos, char* restante, int lenPalabra);
 
+int enviarCaracteresYRecibirMensaje(socket_t* socket);
+
 int recibirMensaje(socket_t* socket);
 
-int enviarMensaje(socket_t* socket);
+int enviarCaracter(socket_t* socket, char* caracter);
 
 void pedirCaracter(char* caracter);
 
@@ -43,9 +47,18 @@ int main(int argc, char* argv[]){
 		return 0;
 
 	aux = recibirMensaje(&socketServidor);
-	while(aux != VICTORIA && aux != DERROTA){	
-		aux = enviarMensaje(&socketServidor);
-		aux = recibirMensaje(&socketServidor);
+	if(aux == ERROR){
+		socketDestruir(&socketServidor);
+		return 0;
+	}
+	while(aux != VICTORIA && aux != DERROTA){
+		aux = enviarCaracteresYRecibirMensaje(&socketServidor);
+		if(aux == ERROR){
+			socketDestruir(&socketServidor);
+			return 0;
+		}
+		//aux = enviarMensaje(&socketServidor);
+		//aux = recibirMensaje(&socketServidor);
 	}
 	if(aux == VICTORIA)
 		printf("Victoria!!!\n");
@@ -55,26 +68,48 @@ int main(int argc, char* argv[]){
 	return 0;
 }
 
-void pedirCaracter(char* caracter){
-	*caracter = getchar();
-	getchar();
-	//int i = 0;
-	//char aux = getchar();
-	//while(i < MAX_CARACTERES && aux != '\n'){
-	//	caracter[i] = aux;
-	//	aux = getchar();
-	//	i++;
-	//}
-	//if(i == MAX_CARACTERES && aux != '\n')
-	//	vaciarBuffer();
-	//caracter[i] = '\0';	
-
+void vaciarBuffer(){
+	char aux = getchar();
+	while(aux != '\n')
+		aux = getchar();
 }
 
-int enviarMensaje(socket_t* socket){
-	char caracter;
-	pedirCaracter(&caracter);
-	int aux = socketEnviar(socket, &caracter, sizeof(int8_t));
+void pedirCaracter(char* caracteres){
+	char charAux = getchar();
+	int i = 0;
+	while(i < MAX_PALABRA && charAux != '\n'){
+		if(97 <= charAux && charAux <= 122){//Caracter es válido
+			caracteres[i] = charAux;
+			i++;
+		}
+		charAux = getchar();
+	}
+	if(i == MAX_PALABRA && charAux != '\n')
+		vaciarBuffer();
+	caracteres[i] = '\0';	
+}
+
+int enviarCaracteresYRecibirMensaje(socket_t* socket){
+	char caracteres[MAX_PALABRA];
+	pedirCaracter(caracteres);
+	int aux;
+	for(int i = 0; i < strlen(caracteres); i++){
+		aux = enviarCaracter(socket, caracteres + i);
+		if(aux == ERROR){
+
+		}
+		aux = recibirMensaje(socket);
+		if(aux == ERROR){
+
+		}
+		if(aux == VICTORIA || aux == DERROTA)
+			return aux;
+	}
+	return EXITO;
+}
+
+int enviarCaracter(socket_t* socket, char* caracter){
+	int aux = socketEnviar(socket, caracter, sizeof(int8_t));
 	if(aux != UN_BYTE){
 		printf("No se envió el byte correspondiente.\n");
 		return ERROR;

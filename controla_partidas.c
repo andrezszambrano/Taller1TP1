@@ -7,7 +7,7 @@
 #define PARTIDA_EN_JUEGO 1
 #define ERROR -10
 #define FIN_DE_PARTIDA 1
-
+#define MAX_PALABRA 25
 void controlaPartidasInicializar(ControlaPartidas* ptrControla, int numIntentos, char* pathAArchivo){
 	if(!ptrControla)
 		return;
@@ -25,9 +25,9 @@ int controlaPartidasEmpezarNuevaPartida(ControlaPartidas* controlador, char** in
 		return ERROR;
 	if(controlador->partidaEnJuego)
 		return PARTIDA_EN_JUEGO;
-	char palabra[25];
+	char palabra[MAX_PALABRA];
 	char* ptrPalabra = palabra;
-	size_t len = 25;
+	size_t len = MAX_PALABRA;
 	int aux = getline(&ptrPalabra, &len, controlador->ptrArchivo);
 	if (aux != EOF){
 		int lenPalabra = ahorcadoInicializar(&(controlador->partidaActual), palabra, controlador->numIntentos, infoRestante);
