@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include "ahorcado.h"
+#include "server_ahorcado.h"
 
 typedef struct ControlaPartidas{ //Struct que controla una sesión de ahorcados
 	int numIntentos;

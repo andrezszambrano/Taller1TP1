@@ -7,7 +7,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <arpa/inet.h>
-#include "socket.h"
+#include "common_socket.h"
 #define EXITO 0
 #define ERROR_SOCKET -1
 #define MAX_QUEUE 1
@@ -18,6 +18,7 @@
 #define UN_BYTE 1
 #define DOS_BYTES 2
 #define MAX_PALABRA 25
+
 void vaciarBuffer();
 
 void imprimirMensajeDelServidor(int numIntentos, char* restante, 
@@ -31,15 +32,14 @@ int enviarCaracter(socket_t* socket, char* caracter);
 
 void pedirCaracter(char* caracter);
 
-void imprimirMensajeDeDerrota(char* restante);
+void imprimirMensajeDeDerrota(char* restante, int lenPalabra);
 
 void imprimirMensajeDeVictoria();
 
 int main(int argc, char* argv[]){
-	
 	if(argc < 3){
-		printf("Error, debe enviar primero el host y después el número 
-				de puerto a conectarse.\n");
+		printf("Error, debe enviar primero el host y después el número" 
+				"de puerto a conectarse.\n");
 		return 0;
 	}
 	socket_t socketServidor;
@@ -59,13 +59,7 @@ int main(int argc, char* argv[]){
 			socketDestruir(&socketServidor);
 			return 0;
 		}
-		//aux = enviarMensaje(&socketServidor);
-		//aux = recibirMensaje(&socketServidor);
 	}
-	if(aux == VICTORIA)
-		printf("Victoria!!!\n");
-	else
-		printf("Derrota \n");
 	socketDestruir(&socketServidor);	
 	return 0;
 }
@@ -78,6 +72,8 @@ void vaciarBuffer(){
 
 void pedirCaracter(char* caracteres){
 	char charAux = getchar();
+	while(charAux == '\n')
+		charAux = getchar();
 	int i = 0;
 	while(i < MAX_PALABRA && charAux != '\n'){
 		if(97 <= charAux && charAux <= 122){//Caracter es válido
@@ -94,15 +90,14 @@ void pedirCaracter(char* caracteres){
 int enviarCaracteresYRecibirMensaje(socket_t* socket){
 	char caracteres[MAX_PALABRA];
 	pedirCaracter(caracteres);
-	int aux;
 	for(int i = 0; i < strlen(caracteres); i++){
-		aux = enviarCaracter(socket, caracteres + i);
+		int aux = enviarCaracter(socket, caracteres + i);
 		if(aux == ERROR){
-
+			return ERROR;
 		}
 		aux = recibirMensaje(socket);
 		if(aux == ERROR){
-
+			return ERROR;
 		}
 		if(aux == VICTORIA || aux == DERROTA)
 			return aux;
@@ -120,29 +115,31 @@ int enviarCaracter(socket_t* socket, char* caracter){
 }
 
 int recibirMensaje(socket_t* socket){
-	unsigned char caracter;
-	int aux = socketRecibir(socket, &caracter, sizeof(int8_t));
-	if(aux == ERROR){
+	char caracterConSigno;
+	int aux = socketRecibir(socket, &caracterConSigno, sizeof(int8_t));
+	if(aux != UN_BYTE){
 		printf("No se recibió el byte correspondiente.\n");
 		return ERROR;
 	}
+	unsigned char caracter = (unsigned char) caracterConSigno;
 	int numIntentos = caracter;
-	int lenPalabra;
-	aux = socketRecibirShort(socket, &lenPalabra);
+	char stringNum[2];
+	aux = socketRecibir(socket, stringNum, 2);
+	uint16_t lenPalabra = stringNum[0] | stringNum[1];
 	if(aux != DOS_BYTES){
 		printf("No se recibieron los dos bytes correspondientes.\n");
 		return ERROR;
 	}
-	char palabraRestante[lenPalabra];
+	char palabraRestante[MAX_PALABRA];
 	aux = socketRecibir(socket, palabraRestante, lenPalabra);
 	if(aux != lenPalabra){
 		printf("No se leyeron los n bytes correspondientes a la palabra.\n");
 		return ERROR;
 	}
 	if(numIntentos == 128){//La partida acabó por derrota
-		imprimirMensajeDeDerrota(palabraRestante);
+		imprimirMensajeDeDerrota(palabraRestante, lenPalabra);
 		return DERROTA;
-	}else if(numIntentos > 128){//La partida terminó por victoria
+	}else if (numIntentos > 128){//La partida terminó por victoria
 		imprimirMensajeDeVictoria();
 		return VICTORIA;
 	}
@@ -150,7 +147,8 @@ int recibirMensaje(socket_t* socket){
 	return SIN_NOVEDADES;
 }
 
-void imprimirMensajeDeDerrota(char* restante){
+void imprimirMensajeDeDerrota(char* restante, int lenPalabra){
+	restante[lenPalabra] = '\0';
 	printf("Perdiste! La palabra secreta era: '%s'\n", restante);
 }
 
@@ -167,5 +165,4 @@ void imprimirMensajeDelServidor(int numIntentos, char* restante,
 		printf("\nTe quedan %i intentos\n", numIntentos);
 	
 	printf("Ingrese letra:\n");
-
 }

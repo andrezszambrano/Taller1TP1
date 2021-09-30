@@ -3,10 +3,12 @@
 
 #include <stdio.h>
 
+#define MAX_PALABRA 25
+
 typedef struct Ahorcado{
 	int numIntentos;
-	char palabraAAdivinar[25];
-	char restante[25];
+	char palabraAAdivinar[MAX_PALABRA];
+	char restante[MAX_PALABRA];
 }Ahorcado;
 
 //Inicializa una partida de ahorcado para una palabra y con número de intentos

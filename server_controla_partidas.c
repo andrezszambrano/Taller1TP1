@@ -1,4 +1,4 @@
-#include "controla_partidas.h"
+#include "server_controla_partidas.h"
 #include <string.h>
 #define VICTORIA 150
 #define DERROTA -1
@@ -8,6 +8,7 @@
 #define ERROR -10
 #define FIN_DE_PARTIDA 1
 #define MAX_PALABRA 25
+
 void controlaPartidasInicializar(ControlaPartidas* ptrControla, int numIntentos,
 								 char* pathAArchivo){
 	if(!ptrControla)
@@ -37,8 +38,9 @@ int controlaPartidasEmpezarNuevaPartida(ControlaPartidas* controlador,
 											  infoRestante);
 		controlador->partidaEnJuego = true; 
 		return lenPalabra;
-	}else
+	}else{
 		return SIN_PALABRAS_RESTANTES;
+	}
 }
 
 int controlaPartidasJugarCaracter(ControlaPartidas* controlador, char caracter){
@@ -51,7 +53,7 @@ int controlaPartidasJugarCaracter(ControlaPartidas* controlador, char caracter){
 
 	if(aux != VICTORIA && aux != DERROTA)
 		return aux;
-	else if(aux == VICTORIA)
+	else if (aux == VICTORIA)
 		controlador->partidasGanadas++;
 	else
 		controlador->partidasPerdidas++;	

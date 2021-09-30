@@ -1,4 +1,4 @@
-#include "ahorcado.h"
+#include "server_ahorcado.h"
 #include <string.h>
 #include <stdbool.h>
 
@@ -7,26 +7,13 @@
 #define VICTORIA 150
 #define ERROR -10
 
-void imprimirPalabraSecretaYNumIntentos(Ahorcado* ahorcado){
-	printf("Palabra secreta: %s\n", ahorcado->restante);
-	printf("Te quedan %i intentos\n", ahorcado->numIntentos);
-	printf("Ingrese letra:\n");
-}
-
-void imprimirMensajeDeFinDePartida(Ahorcado* ahorcado, int aux){
-	if(aux == VICTORIA)
-		printf("Ganaste!!\n");
-	else
-		printf("Perdiste! La palabra secreta era: %s\n",
-				ahorcado->palabraAAdivinar);
-}
-
 int ahorcadoInicializar(Ahorcado* ahorcado, char* palabra, 
 						int numIntentos, char** infoRestante){
 	if(ahorcado == NULL)
 		return ERROR;
 	ahorcado->numIntentos = numIntentos;
-	strncpy(ahorcado->palabraAAdivinar, palabra, strlen(palabra)*sizeof(char));
+	snprintf(ahorcado->palabraAAdivinar, MAX_PALABRA, 
+			"%s",palabra);
 	ahorcado->palabraAAdivinar[strlen(palabra)-1]='\0';
 	for(int i = 0; i < strlen(ahorcado->palabraAAdivinar); i++)
 		ahorcado->restante[i] = '_';
@@ -60,15 +47,15 @@ int letrasRestantes(Ahorcado* ahorcado){
 }
 
 int estadoDePartida(Ahorcado* ahorcado){
-	if (ahorcado->numIntentos == 0){
-		strcpy(ahorcado->restante, ahorcado->palabraAAdivinar);
+	if(ahorcado->numIntentos == 0){
+		snprintf(ahorcado->restante, strlen(ahorcado->restante)+1, 
+				"%s",ahorcado->palabraAAdivinar);
 		return SIN_INTENTOS;
-	}
-	else if (letrasRestantes(ahorcado) == 0)
+	}else if (letrasRestantes(ahorcado) == 0){
 		return VICTORIA;
-	else
+	}else{
 		return ahorcado->numIntentos;
-
+	}
 }
 
 int ahorcadoJugarCaracter(Ahorcado* ahorcado, char letraRecibida){
@@ -76,9 +63,5 @@ int ahorcadoJugarCaracter(Ahorcado* ahorcado, char letraRecibida){
 		return ERROR;
 	validarLetra(ahorcado, letraRecibida);
 	int aux = estadoDePartida(ahorcado);
-	if(aux != VICTORIA && aux != SIN_INTENTOS)
-		imprimirPalabraSecretaYNumIntentos(ahorcado);
-	else
-		imprimirMensajeDeFinDePartida(ahorcado, aux);
 	return aux;
 }
