@@ -16,9 +16,12 @@ typedef struct Ahorcado{
 int ahorcadoInicializar(Ahorcado* ahorcado, char* palabra, int numIntentos, 
 						char** infoRestante);
 
-//Se juega el caracter enviado por parámetro. Se regresa -1 sí se acabaron los 
+//Se juega el caracter enviado por parámetro. Se regresa -1 si se acabaron los 
 //intentos al verificar el caracter, 150 sí se ganó la partida, o la cantidad 
 //de intentos restantes sí no hay novedades.
+//Suena raro 150, no? No está bueno que los contratos suenen raro.
 int ahorcadoJugarCaracter(Ahorcado* ahorcado, char letra);
+
+// destruir?
 
 #endif

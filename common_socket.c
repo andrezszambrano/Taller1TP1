@@ -18,16 +18,19 @@ int socketInicializarYConectarCliente(socket_t* socketCliente, const char* host,
 	memset(&baseaddr, 0, sizeof(struct addrinfo));
 	baseaddr.ai_socktype = SOCK_STREAM;
 	baseaddr.ai_family = AF_UNSPEC; //Ipv4 o Ipv6 
-	baseaddr.ai_flags = AI_PASSIVE; //Ningún flag ya que es un cliente
+	baseaddr.ai_flags = 0; //Ningún flag ya que es un cliente <-- ningún flag es 0, no AI_PASSIVE
 	int aux = getaddrinfo(NULL, servicio, &baseaddr, &ptraddr);
-	if(aux != EXITO){
-		printf("Error: %s\n", strerror(errno));
+	if (aux != EXITO){
+		printf("Error: %s\n", gai_strerror(aux));
 		printf("Error al intentar obtener las direcciones\n");
 		return ERROR;
 	}
+
+	// getaddrinfo devuelve una lista enlazada de direcciones, acá estás mirando solamente la primera.
+	// en la página de manual de getaddrinfo tenés un ejemplo.
 	int fdDelServidor = socket(ptraddr->ai_family, ptraddr->ai_socktype,
 								 ptraddr->ai_protocol);
-	if(fdDelServidor == ERROR){
+	if (fdDelServidor == ERROR) {
 		printf("Error: %s\n", strerror(errno));
 		printf("Error creando el socket del servidor\n");
 		freeaddrinfo(ptraddr);
@@ -36,6 +39,7 @@ int socketInicializarYConectarCliente(socket_t* socketCliente, const char* host,
 	aux = connect(fdDelServidor, ptraddr->ai_addr, ptraddr->ai_addrlen);
     if (aux == -1) {
         printf("Error al conectarse al puerto\n");
+        // close puede devolver un error también.
         close(fdDelServidor);
         freeaddrinfo(ptraddr);
     	return ERROR;
@@ -56,39 +60,47 @@ int socketInicializarServidorConBindYListen(socket_t* socketServidor,
 	baseaddr.ai_flags = AI_PASSIVE; //Las direcciones dadas podrán usar bind() 
 	//y accept()
 	int aux = getaddrinfo(NULL, servicio, &baseaddr, &ptraddr);
-	if(aux != EXITO){
+	if (aux != EXITO) {
+		// los errores de getaddrinfo se resuelven con gai_strerror (ver la página de manual)
 		printf("Error: %s\n", strerror(errno));
 		printf("Error al intentar obtener las direcciones\n");
+		// leak: en todos estos casos en los que retornás error hay que cerrar el socket.
 		return ERROR;
 	}
+
+	// al igual que en el connect, tenés que iterar la lista enlazada que devuelve getaddrinfo.
 	int fdServidor = socket(ptraddr->ai_family, ptraddr->ai_socktype, 
 							ptraddr->ai_protocol);
-	if(fdServidor == ERROR){
+	if (fdServidor == ERROR) {
 		printf("Error: %s\n", strerror(errno));
 		printf("Error creando el socket del servidor\n");
 		freeaddrinfo(ptraddr);
+		// leak del fd
 		return ERROR;
 	}
 	int val = 1;
    	aux = setsockopt(fdServidor, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
-	if(aux != EXITO){
+	if (aux != EXITO) {
 		printf("Error: %s\n", strerror(errno));
 		printf("Error asignandole un nombre al socket\n");
 		freeaddrinfo(ptraddr);
+		// leak del fd
 		return ERROR;
 	}
 	aux = bind(fdServidor, ptraddr->ai_addr, ptraddr->ai_addrlen);
-	if(aux != EXITO){
+	if (aux != EXITO) {
 		printf("Error: %s\n", strerror(errno));
 		printf("Error asignandole un nombre al socket\n");
 		freeaddrinfo(ptraddr);
+		// leak del fd
 		return ERROR;
 	}
 	freeaddrinfo(ptraddr);
 	aux = listen(fdServidor, MAX_QUEUE);
-	if(aux != EXITO){
+	if (aux != EXITO) {
 		printf("Error: %s\n", strerror(errno));
 		printf("Error en la función listen\n");
+		// leak del fd
 		return ERROR;
 	}
 	socketServidor->fd = fdServidor;
@@ -97,20 +109,20 @@ int socketInicializarServidorConBindYListen(socket_t* socketServidor,
 
 int socketAceptar(socket_t* socketServidor, socket_t* socketCliente){
 	int fd = accept(socketServidor->fd, NULL, NULL); 
-	if(fd == ERROR)
+	if (fd == ERROR)
 		return ERROR;
 	socketCliente->fd = fd;
 	return EXITO; 
 }
 
-ssize_t socketEnviar(socket_t* socket, char* buffer, size_t length){
+ssize_t socketEnviar(socket_t* socket, /* const */ char* buffer, size_t length){
 	if(!socket)
 		return ERROR;
 	int escritos = 0;
-	while(escritos < length){
+	while (escritos < length) {
 		int aux = send(socket->fd, buffer + escritos,
-						 length*sizeof(int8_t) - escritos, MSG_NOSIGNAL);
-		if(aux == ERROR)
+					   length - escritos, MSG_NOSIGNAL);
+		if (aux == ERROR)
 			return ERROR;
 		else if (aux == SOCKET_NO_DISPONIBLE)
 			return SOCKET_NO_DISPONIBLE;
@@ -118,6 +130,8 @@ ssize_t socketEnviar(socket_t* socket, char* buffer, size_t length){
 	}
 	return escritos;
 }
+
+// No entregar código comentado -> Y este código se acoplaría con el protocolo, así que mejor borrarlo.
 /*
 ssize_t socketEnviarShort(socket_t* socket, uint16_t numAEnviar){
 	if(!socket)
@@ -137,21 +151,25 @@ ssize_t socketEnviarShort(socket_t* socket, uint16_t numAEnviar){
 }*/
 
 
+
 ssize_t socketRecibir(socket_t* socket, char* buffer, size_t length){
 	if(!socket)
 		return ERROR;
 	int leidos = 0;
 	while(leidos < length){
-		int aux = recv(socket->fd, buffer + leidos,
-					 length*sizeof(int8_t) - leidos, 0);
+		int aux = recv(socket->fd, buffer + leidos, length - leidos, 0);
 		if(aux == ERROR)
 			return ERROR;
 		else if (aux == SOCKET_NO_DISPONIBLE)
+			// acá te conviene retornar el valor de "leidos". En este TP no
+			// hay necesidad, pero para otros protocolos no te va a quedar otra.
 			return SOCKET_NO_DISPONIBLE;
 		leidos = leidos + aux;
 	}
 	return leidos;
 }
+
+// Lo mismo que en el bloque comentado anterior.
 /*
 ssize_t socketRecibirShort(socket_t* socket, uint16_t* numARecibir){
 	if(!socket)
@@ -172,7 +190,7 @@ ssize_t socketRecibirShort(socket_t* socket, uint16_t* numARecibir){
 	return leidos;
 }*/
 
-void socketDestruir(socket_t* socket){
+void socketDestruir(socket_t* socket) {
 	shutdown(socket->fd, SHUT_RDWR);
 	close(socket->fd);
 }

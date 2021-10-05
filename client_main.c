@@ -36,8 +36,12 @@ void imprimirMensajeDeDerrota(char* restante, int lenPalabra);
 
 void imprimirMensajeDeVictoria();
 
-int main(int argc, char* argv[]){
-	if(argc < 3){
+// Toda la lógica de este archivo fuente es global. Hay que asignar responsabilidades
+// a los TDAs correspondientes y modularizar.
+
+int main(int argc, char* argv[]) {
+	if (argc < 3) {
+		// estaría mejor imprimir esto en stderr y retornar algún código de error.
 		printf("Error, debe enviar primero el host y después el número" 
 				"de puerto a conectarse.\n");
 		return 0;
@@ -66,7 +70,7 @@ int main(int argc, char* argv[]){
 
 void vaciarBuffer(){
 	char aux = getchar();
-	while(aux != '\n')
+	while (aux != '\n')
 		aux = getchar();
 }
 
@@ -90,16 +94,16 @@ void pedirCaracter(char* caracteres){
 int enviarCaracteresYRecibirMensaje(socket_t* socket){
 	char caracteres[MAX_PALABRA];
 	pedirCaracter(caracteres);
-	for(int i = 0; i < strlen(caracteres); i++){
+	for (int i = 0; i < strlen(caracteres); i++) {
 		int aux = enviarCaracter(socket, caracteres + i);
-		if(aux == ERROR){
+		if (aux == ERROR) {
 			return ERROR;
 		}
 		aux = recibirMensaje(socket);
-		if(aux == ERROR){
+		if (aux == ERROR) {
 			return ERROR;
 		}
-		if(aux == VICTORIA || aux == DERROTA)
+		if (aux == VICTORIA || aux == DERROTA)
 			return aux;
 	}
 	return EXITO;
@@ -107,7 +111,7 @@ int enviarCaracteresYRecibirMensaje(socket_t* socket){
 
 int enviarCaracter(socket_t* socket, char* caracter){
 	int aux = socketEnviar(socket, caracter, sizeof(int8_t));
-	if(aux != UN_BYTE){
+	if (aux != UN_BYTE) {
 		printf("No se envió el byte correspondiente.\n");
 		return ERROR;
 	}
@@ -121,22 +125,27 @@ int recibirMensaje(socket_t* socket){
 		printf("No se recibió el byte correspondiente.\n");
 		return ERROR;
 	}
+
+	// esto es un bug, lo que dice el protocolo es que se precede el caracter con
+	// un bit en 1, no que se le cambia el signo. (Pista: Hay que usar un operador & )
 	unsigned char caracter = (unsigned char) caracterConSigno;
 	int numIntentos = caracter;
 	char stringNum[2];
 	aux = socketRecibir(socket, stringNum, 2);
 	uint16_t lenPalabra = stringNum[0] | stringNum[1];
-	if(aux != DOS_BYTES){
+	if (aux != DOS_BYTES) {
 		printf("No se recibieron los dos bytes correspondientes.\n");
 		return ERROR;
 	}
 	char palabraRestante[MAX_PALABRA];
 	aux = socketRecibir(socket, palabraRestante, lenPalabra);
-	if(aux != lenPalabra){
+	if (aux != lenPalabra) {
 		printf("No se leyeron los n bytes correspondientes a la palabra.\n");
 		return ERROR;
 	}
-	if(numIntentos == 128){//La partida acabó por derrota
+
+	// número mágico!
+	if (numIntentos == 128) {//La partida acabó por derrota
 		imprimirMensajeDeDerrota(palabraRestante, lenPalabra);
 		return DERROTA;
 	}else if (numIntentos > 128){//La partida terminó por victoria

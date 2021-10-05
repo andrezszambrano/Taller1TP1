@@ -1,3 +1,7 @@
+// No leo este archivo porque a simple vista es lo mismo que common_socket.h (y por 
+// el nombre, el que va a terminar tomando el Makefile es el otro)
+
+
 #ifndef __SOCKET_H__
 #define __SOCKET_H__
 

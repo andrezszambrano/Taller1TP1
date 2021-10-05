@@ -10,8 +10,8 @@
 #define MAX_PALABRA 25
 
 void controlaPartidasInicializar(ControlaPartidas* ptrControla, int numIntentos,
-								 char* pathAArchivo){
-	if(!ptrControla)
+								 char* pathAArchivo) {
+	if (!ptrControla)
 		return;
 	ptrControla->numIntentos = numIntentos;
 	ptrControla->partidasGanadas = 0;
@@ -23,35 +23,36 @@ void controlaPartidasInicializar(ControlaPartidas* ptrControla, int numIntentos,
 }	
 
 int controlaPartidasEmpezarNuevaPartida(ControlaPartidas* controlador,
-										 char** infoRestante){
-	if(!controlador)
+										char** infoRestante) {
+	if (!controlador)
 		return ERROR;
-	if(controlador->partidaEnJuego)
+	if (controlador->partidaEnJuego)
 		return PARTIDA_EN_JUEGO;
 	char palabra[MAX_PALABRA];
 	char* ptrPalabra = palabra;
 	size_t len = MAX_PALABRA;
 	int aux = getline(&ptrPalabra, &len, controlador->ptrArchivo);
-	if (aux != EOF){
+	// en la página de manual de getline dice que retorna -1, no EOF.
+	if (aux != EOF) {
 		int lenPalabra = ahorcadoInicializar(&(controlador->partidaActual),
 											 palabra, controlador->numIntentos,
-											  infoRestante);
-		controlador->partidaEnJuego = true; 
+											 infoRestante);
+		controlador->partidaEnJuego = true;
 		return lenPalabra;
-	}else{
+	} else {
 		return SIN_PALABRAS_RESTANTES;
 	}
 }
 
-int controlaPartidasJugarCaracter(ControlaPartidas* controlador, char caracter){
-	if(!controlador)
+int controlaPartidasJugarCaracter(ControlaPartidas* controlador, char caracter) {
+	if (!controlador)
 		return ERROR;
-	if(!controlador->partidaEnJuego)
+	if (!controlador->partidaEnJuego)
 		return ERROR;
 
 	int aux = ahorcadoJugarCaracter(&(controlador->partidaActual), caracter);
 
-	if(aux != VICTORIA && aux != DERROTA)
+	if (aux != VICTORIA && aux != DERROTA)
 		return aux;
 	else if (aux == VICTORIA)
 		controlador->partidasGanadas++;
@@ -62,7 +63,7 @@ int controlaPartidasJugarCaracter(ControlaPartidas* controlador, char caracter){
 }
 
 void controlaPartidasResumen(ControlaPartidas* controlador){
-	if(!controlador)
+	if (!controlador)
 		return;
 	printf("Resumen:\n");
 	printf("\tVictorias: %i\n", controlador->partidasGanadas);
@@ -70,7 +71,7 @@ void controlaPartidasResumen(ControlaPartidas* controlador){
 }
 
 void controlaPartidasDestruir(ControlaPartidas* controlador){
-	if(!controlador)
+	if (!controlador)
 		return;
 	fclose(controlador->ptrArchivo);
 }

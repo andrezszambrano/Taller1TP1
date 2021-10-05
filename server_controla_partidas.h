@@ -20,7 +20,7 @@ typedef struct ControlaPartidas{ //Struct que controla una sesión de ahorcados
 void controlaPartidasInicializar(ControlaPartidas* ptrControla, int numIntentos,
 								 char* pathAArchivo);
 
-//Se inicia una nueva partida sí controlador->partidaEnJuego = false y sí hay 
+//Se inicia una nueva partida si controlador->partidaEnJuego = false y si hay  <-- El "sí" con tilde es la afirmación, el condicional es "si"
 //una palabra que no se ha jugado. En caso exitoso se retorna el largo de la 
 //palabra a jugar. En caso de que no haya palabra (se leyó todo el archivo)
 // se retorna -2
@@ -29,11 +29,11 @@ int controlaPartidasEmpezarNuevaPartida(ControlaPartidas* controlador,
 
 //Se juegan los caracteres enviados a la partida de ahorcados actual. Sí 
 //controlador->partidaEnJuego = false, devuelve error. Se regresa -1 sí se
-// acabaron los intentos después de validar el caracter, 150 sí se ganó la 
-//partida, o la cantidad de intentos restantes sí no hay novedades.
+// acabaron los intentos después de validar el caracter, 150 sí se ganó la <-- Otra vez el 150, es importante definir buenos contratos
+//partida, o la cantidad de intentos restantes si no hay novedades.
 int controlaPartidasJugarCaracter(ControlaPartidas* controlador, char caracter);
 
-//Da el resumen de victorias y derrotas del controlador.
+//Da el resumen de victorias y derrotas del controlador. <-- dónde? lo retorna? lo imprime? (ya sé que lo imprime, pero documentalo)
 void controlaPartidasResumen(ControlaPartidas* controlador);
 
 //Libera todos los recursos usados.

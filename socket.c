@@ -1,3 +1,6 @@
+// No leo este archivo porque a simple vista es lo mismo que common_socket.c (y por 
+// el nombre, el que va a terminar tomando el Makefile es el otro)
+
 #define _POSIX_C_SOURCE 200112L
 #include "socket.h"
 #include <errno.h>

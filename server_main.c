@@ -16,10 +16,13 @@
 #define UN_BYTE 1
 #define DOS_BYTES 2
 
+// modularizar y mover estas funciones a los correspondientes TDAs.
+
 char cicloEnviarInfoYRecibirCaracter(socket_t* socket, int cantIntentos, 
 									uint16_t largoPalabra, char** infoRestante,
 									int cantIntentosAnterior);
 
+// esto es responsabilidad del protocolo
 int enviarInfoConProtocolo(socket_t* socket, int cantIntentos, 
 							uint16_t largoPalabra, char** infoRestante,
 							int cantIntentosAnterior);
@@ -34,69 +37,86 @@ int enviarPalabraRestante(socket_t* socket, int largoPalabra,
 						 char** infoRestante);
 
 int main(int argc, char* argv[]){
-	if(argc < 4){
+	if (argc < 4) {
 		printf("Error, debe enviar primero el puerto, la cantidad de intentos"
-		"por partida y el archivo nombre del archivo para jugar el"
-		" ahorcado.\n");
+			   "por partida y el archivo nombre del archivo para jugar el"
+			   " ahorcado.\n");
 		return 0;
 	}
 	ControlaPartidas controlador;
-	int cantIntentos = (int)strtol(argv[2], NULL, 10);
+	// atoi?
+	int cantIntentos = (int) strtol(argv[2], NULL, 10);
 	controlaPartidasInicializar(&controlador, cantIntentos, argv[3]);
 	socket_t socketServidor;
 	int aux = socketInicializarServidorConBindYListen(&socketServidor, NULL, 
 														argv[1]);
-	if(aux == ERROR)
-		return 0;	
+	if (aux == ERROR)
+		return 0;
+
+	// qué significa "restante"?
 	char* restante;
-	int16_t largoPalabra = (int16_t)controlaPartidasEmpezarNuevaPartida(
-							&controlador, &restante);
-	while(largoPalabra != SIN_PALABRAS){
+
+	// escribir esto afuera del loop hace que lo tengas que duplicar al final del mismo.
+	int16_t largoPalabra = (int16_t) controlaPartidasEmpezarNuevaPartida(
+						   &controlador, &restante);
+	while (largoPalabra != SIN_PALABRAS) {
 		socket_t socketCliente;
+
+		// tenés lógica de socket en la misma función que lógica del juego,
+		// se te dificulta mucho encontrar un bug acá.
 		aux = socketAceptar(&socketServidor, &socketCliente);
-		if(aux == ERROR)
-			return 0;	
-		int cantIntentosAnterior = cantIntentos;	
-		char caracter = cicloEnviarInfoYRecibirCaracter(&socketCliente, 
-														 cantIntentos, 
-														 (uint16_t)largoPalabra, 
-														 &restante, 
-														 cantIntentosAnterior);
-		if(caracter == ERROR){
+		if (aux == ERROR)
+			return 0;
+
+		// por qué hay varias variables con semántica de cantidad de intentos? anterior a qué?
+		int cantIntentosAnterior = cantIntentos;
+
+		// qué es ese caracter? la jugada?
+		// se le pasa dos veces el mismo valor a esta función
+		char caracter = cicloEnviarInfoYRecibirCaracter(&socketCliente,
+														cantIntentos,
+														(uint16_t) largoPalabra,
+														&restante,
+														cantIntentosAnterior);
+		if (caracter == ERROR) {
+			// la lógica para liberar recursos se repite en todas partes debido a la falta
+			// de modularización.
 			controlaPartidasDestruir(&controlador);
 			socketDestruir(&socketCliente);
 			socketDestruir(&socketServidor);
 			return 0;
 		}
-		int intentosRestantes = controlaPartidasJugarCaracter(&controlador, 
+		int intentosRestantes = controlaPartidasJugarCaracter(&controlador,
 																caracter);
-		while(intentosRestantes != VICTORIA && intentosRestantes != DERROTA){
+		// "Mientras los intentos restantes no sean victoria y no sean derrota"
+		// no suena bien
+		while (intentosRestantes != VICTORIA && intentosRestantes != DERROTA) {
 			caracter = cicloEnviarInfoYRecibirCaracter(&socketCliente, 
 														intentosRestantes,
-														(uint16_t)largoPalabra,
+														(uint16_t) largoPalabra,
 														&restante,
 														cantIntentosAnterior);
-			if(caracter == ERROR){
+			if (caracter == ERROR) {
 				controlaPartidasDestruir(&controlador);
 				socketDestruir(&socketCliente);
 				socketDestruir(&socketServidor);
 				return 0;
 			}
 			cantIntentosAnterior = intentosRestantes;
-			intentosRestantes = controlaPartidasJugarCaracter(&controlador, 
+			intentosRestantes = controlaPartidasJugarCaracter(&controlador,
 																caracter);
 		}
 		aux = enviarInfoConProtocolo(&socketCliente, intentosRestantes, 
-									(uint16_t)largoPalabra, &restante,
-									cantIntentosAnterior);
-		if(aux == ERROR){
+									 (uint16_t) largoPalabra, &restante,
+									 cantIntentosAnterior);
+		if (aux == ERROR) {
 			controlaPartidasDestruir(&controlador);
 			socketDestruir(&socketCliente);
 			socketDestruir(&socketServidor);
 			return 0;
 		}
 		socketDestruir(&socketCliente);
-		largoPalabra = (int16_t)controlaPartidasEmpezarNuevaPartida(
+		largoPalabra = (int16_t) controlaPartidasEmpezarNuevaPartida(
 																&controlador, 
 																&restante);
 	}		
@@ -114,8 +134,8 @@ char cicloEnviarInfoYRecibirCaracter(socket_t* socket, int cantIntentos,
 	if(aux == ERROR)
 		return ERROR;
 	char caracter;
-	aux = socketRecibir(socket, &caracter, sizeof(int8_t));
-	if(aux != UN_BYTE){
+	aux = socketRecibir(socket, &caracter, UN_BYTE);
+	if (aux != UN_BYTE) {
 		printf("Error: no se recibió el byte correspondiente.\n");
 		return ERROR;
 	}
@@ -127,7 +147,7 @@ int enviarInfoConProtocolo(socket_t* socket, int cantIntentos,
 							int cantIntentosAnterior){
 	int aux = enviarFlagTerminaPartidasEIntentosRestantes(socket, cantIntentos,
 														cantIntentosAnterior);
-	if(aux != UN_BYTE){
+	if (aux != UN_BYTE) {
 		printf("Error: No se envió el primer byte.\n");
 		return ERROR;
 	}
@@ -137,9 +157,9 @@ int enviarInfoConProtocolo(socket_t* socket, int cantIntentos,
 		return ERROR;
 	}
 	aux = enviarPalabraRestante(socket, largoPalabra, infoRestante);
-	if(aux != largoPalabra){
+	if (aux != largoPalabra) {
 		printf("Error: No se enviaron los n bytes correspondientes al" 
-				"largo de la palabra.\n");
+			   "largo de la palabra.\n");
 		return ERROR;
 	}
 	return EXITO;
@@ -147,21 +167,25 @@ int enviarInfoConProtocolo(socket_t* socket, int cantIntentos,
 
 int enviarFlagTerminaPartidasEIntentosRestantes(socket_t* socket, 
 												int cantIntentos,
-												int cantIntentosAnterior){
-	if(cantIntentos == VICTORIA)
+												int cantIntentosAnterior) {
+	// Es raro esto, fijate que si la cantidad de intentos es 150
+	if (cantIntentos == VICTORIA)
+		// entonces la cantidad de intentos debe ser 150 + 128 = 278
 		cantIntentos = cantIntentosAnterior + 128;
 	else if (cantIntentos == DERROTA)
 		cantIntentos = cantIntentos + 128;
-	char caracter = cantIntentos; 
-	return socketEnviar(socket, &caracter, sizeof(int8_t));
+
+	// y por ende si es victoria ponés un 278 en un char
+	char caracter = cantIntentos;
+	return socketEnviar(socket, &caracter, UN_BYTE);
+
+	// intentá refactorizarlo para que se entienda qué hace el código (usá el operador | )
 }
 
 int enviarLargoDePalabra(socket_t* socket, uint16_t largoPalabra){
-	char stringNum[2];
-	stringNum[1] = largoPalabra & 0xFF; //Byte más significativo primero
-	stringNum[0] = largoPalabra >> 8;   //Byte menos significativo segundo
-	//snprintf(stringNum, sizeof(uint16_t),"%"PRIu16, largoPalabra);
-	return socketEnviar(socket, stringNum, 2);
+	// No te compliques!! Mirá:
+	uint16_t big_endian = htons(largoPalabra);
+	return socketEΩnviar(socket, &big_endian, 2);
 }
 
 int enviarPalabraRestante(socket_t* socket, int largoPalabra, 
