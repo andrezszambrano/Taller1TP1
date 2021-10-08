@@ -27,11 +27,23 @@ void controlaPartidasInicializar(ControlaPartidas* ptrControla, int numIntentos,
 int controlaPartidasEmpezarNuevaPartida(ControlaPartidas* controlador, 
 										char** infoRestante);
 
+//Se regresan las cantidad de intentos totales con las cuales se comienzan las 
+//partidas de ahorcado. Sí no existe el controlador, se devuelve error.  
+int controlaPartidasIntentosPorPartida(ControlaPartidas* controlador);
+
 //Se juegan los caracteres enviados a la partida de ahorcados actual. Sí 
 //controlador->partidaEnJuego = false, devuelve error. Se regresa -1 sí se
 // acabaron los intentos después de validar el caracter, 150 sí se ganó la 
 //partida, o la cantidad de intentos restantes sí no hay novedades.
 int controlaPartidasJugarCaracter(ControlaPartidas* controlador, char caracter);
+
+//Se actualiza la partida en juego sí hubo victoria o derrota, modificando
+//los atributos del controlador acorde.
+//Se regresa el estado de la partida en juego, sí la partida acabó y es victoria
+//se regresa 1, sí acabó y es derrota se regresa 2, y sí no hay novedades se
+//regresa 0. Sí el controlador no existe se regresa -1.
+int controlaPartidasActualizarYDarEstadoActualDePartida(ControlaPartidas* 
+	                                                     conrolador);
 
 //Da el resumen de victorias y derrotas del controlador.
 void controlaPartidasResumen(ControlaPartidas* controlador);

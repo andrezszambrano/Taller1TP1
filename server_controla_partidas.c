@@ -1,9 +1,9 @@
 #include "server_controla_partidas.h"
 #include <string.h>
-#define VICTORIA 150
-#define DERROTA -1
+#define VICTORIA 1
+#define DERROTA 2
 #define SIN_NOVEDADES 0 
-#define SIN_PALABRAS_RESTANTES -2
+#define SIN_PALABRAS_RESTANTES 1
 #define PARTIDA_EN_JUEGO 1
 #define ERROR -10
 #define FIN_DE_PARTIDA 1
@@ -43,14 +43,18 @@ int controlaPartidasEmpezarNuevaPartida(ControlaPartidas* controlador,
 	}
 }
 
+int controlaPartidasIntentosPorPartida(ControlaPartidas* controlador){
+	return controlador->numIntentos;
+}
+
 int controlaPartidasJugarCaracter(ControlaPartidas* controlador, char caracter){
 	if(!controlador)
 		return ERROR;
 	if(!controlador->partidaEnJuego)
 		return ERROR;
 
-	int aux = ahorcadoJugarCaracter(&(controlador->partidaActual), caracter);
-
+	return ahorcadoJugarCaracter(&(controlador->partidaActual), caracter);
+/*
 	if(aux != VICTORIA && aux != DERROTA)
 		return aux;
 	else if (aux == VICTORIA)
@@ -58,7 +62,25 @@ int controlaPartidasJugarCaracter(ControlaPartidas* controlador, char caracter){
 	else
 		controlador->partidasPerdidas++;	
 	controlador->partidaEnJuego = false;
-	return aux;
+	return aux;*/
+}
+
+
+int controlaPartidasActualizarYDarEstadoActualDePartida(ControlaPartidas* 
+														controlador){
+	if (!controlador)
+		return ERROR;
+	int estadoPartida = ahorcadoEstadoDePartida(&(controlador->partidaActual));
+	if (estadoPartida == SIN_NOVEDADES)
+		return SIN_NOVEDADES;
+	controlador->partidaEnJuego = false;
+	if (estadoPartida == VICTORIA){
+		controlador->partidasGanadas++;
+		return VICTORIA;
+	} else {
+		controlador->partidasPerdidas++;
+		return DERROTA;
+	}
 }
 
 void controlaPartidasResumen(ControlaPartidas* controlador){
