@@ -1,7 +1,5 @@
-
-
 #include "client.h"
-#include "common_comunicacion_con_protocolo.h"
+#include "client_comunicacion_con_protocolo.h"
 
 #define ARGUMENTOS_REQUERIDOS 2
 #define EXITO 0

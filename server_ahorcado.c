@@ -7,22 +7,20 @@
 #define VICTORIA 1
 #define ERROR -10
 
-int ahorcadoInicializar(Ahorcado* ahorcado, char* palabra, 
-						int numIntentos, char** infoRestante) {
+int ahorcadoInicializar(Ahorcado* ahorcado, char* palabra, int numIntentos) {
 	if (!ahorcado)
 		return ERROR;
 	ahorcado->numIntentos = numIntentos;
 	snprintf(ahorcado->palabraAAdivinar, MAX_PALABRA, 
 			"%s",palabra);
-	ahorcado->palabraAAdivinar[strlen(palabra)-1]='\0';
+	ahorcado->palabraAAdivinar[strlen(palabra)-1] = '\0';
 	for (int i = 0; i < strlen(ahorcado->palabraAAdivinar); i++)
 		ahorcado->restante[i] = '_';
 	ahorcado->restante[strlen(ahorcado->palabraAAdivinar)]='\0';
-	*infoRestante = ahorcado->restante;
 	return strlen(ahorcado->palabraAAdivinar);
 }
 
-void validarLetra(Ahorcado* ahorcado, char letra) {
+void jugarYValidarLetra(Ahorcado* ahorcado, char letra) {
 	bool letraIncorrecta = true;
 	int len = strlen(ahorcado->palabraAAdivinar);
 	for (int i = 0; i < len; i++){
@@ -61,12 +59,22 @@ int estadoDePartida(Ahorcado* ahorcado) {
 int ahorcadoJugarCaracter(Ahorcado* ahorcado, char letraRecibida) {
 	if (!ahorcado)
 		return ERROR;
-	validarLetra(ahorcado, letraRecibida);
+	jugarYValidarLetra(ahorcado, letraRecibida);
 	return ahorcado->numIntentos;
+}
+
+char* ahorcadoPalabraRestante(Ahorcado* ahorcado) { 
+	if (!ahorcado)
+		return NULL;
+	return ahorcado->restante;
 }
 
 int ahorcadoEstadoDePartida(Ahorcado* ahorcado) {
 	if (!ahorcado)
 		return ERROR;
 	return estadoDePartida(ahorcado);
+}
+
+void ahorcadoDestruir(Ahorcado* ahorcado) {
+	return;
 }

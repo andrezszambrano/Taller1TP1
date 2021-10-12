@@ -2,7 +2,6 @@
 #include <stdbool.h>
 #include <string.h>
 #include "client.h"
-#include "common_comunicacion_con_protocolo.h"
 #define EXITO 0
 #define ERROR -1
 

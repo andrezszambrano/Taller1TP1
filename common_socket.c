@@ -24,7 +24,7 @@ int socketInicializarYConectarCliente(socket_t* socketCliente, const char* host,
 	baseaddr.ai_flags = 0; //Ningún flag ya que es un cliente
 	int aux = getaddrinfo(NULL, servicio, &baseaddr, &ptraddr);
 	if (aux != EXITO){
-		printf("Error: %s\n", gai_strerror(aux));
+		fprintf(stderr, "Error: %s\n", gai_strerror(aux));
 		return ERROR;
 	}
 	int fdDelServidor = 0;
@@ -34,14 +34,14 @@ int socketInicializarYConectarCliente(socket_t* socketCliente, const char* host,
         fdDelServidor = socket(ptrAux->ai_family, ptrAux->ai_socktype, 
       						 ptrAux->ai_protocol);
         if (fdDelServidor == ERROR) {
-            printf("Error: %s\n", strerror(errno));
+            fprintf(stderr, "Error: %s\n", strerror(errno));
 	    } else {
     	    aux = connect(fdDelServidor, ptrAux->ai_addr, ptrAux->ai_addrlen);
      	    if (aux == ERROR) {
-         	    printf("Error: %s\n", strerror(errno));
+         	    fprintf(stderr, "Error: %s\n", strerror(errno));
             	aux = close(fdDelServidor);
             	if (aux != EXITO)
-					printf("Error: %s\n", strerror(errno));
+					fprintf(stderr, "Error: %s\n", strerror(errno));
 	        } else {
     	     	conectados = true;
     	    }
@@ -69,7 +69,7 @@ int socketInicializarServidorConBindYListen(socket_t* socketServidor,
 	//y accept()
 	int aux = getaddrinfo(NULL, servicio, &baseaddr, &ptraddr);
 	if (aux != EXITO){
-		printf("Error: %s\n", gai_strerror(aux));
+		fprintf(stderr, "Error: %s\n", gai_strerror(aux));
 		return ERROR;
 	}
 	int fdServidor = 0;
@@ -85,17 +85,17 @@ int socketInicializarServidorConBindYListen(socket_t* socketServidor,
    			aux = setsockopt(fdServidor, SOL_SOCKET, SO_REUSEADDR, 
    							 &val, sizeof(val));
 			if (aux != EXITO){
-				printf("Error: %s\n", strerror(errno));
+				fprintf(stderr, "Error: %s\n", strerror(errno));
 				aux = close(fdServidor);
 				if (aux != EXITO)
-					printf("Error: %s\n", strerror(errno));
+					fprintf(stderr, "Error: %s\n", strerror(errno));
 			} else {
     		    aux = bind(fdServidor, ptraddr->ai_addr, ptraddr->ai_addrlen);
 				if (aux != EXITO){
-					printf("Error: %s\n", strerror(errno));
+					fprintf(stderr, "Error: %s\n", strerror(errno));
 					aux = close(fdServidor);
 					if (aux != EXITO)
-						printf("Error: %s\n", strerror(errno));
+						fprintf(stderr, "Error: %s\n", strerror(errno));
 				} else {
 					socketActivo = true;
 				}
@@ -106,11 +106,11 @@ int socketInicializarServidorConBindYListen(socket_t* socketServidor,
 	freeaddrinfo(ptraddr);
 	aux = listen(fdServidor, MAX_QUEUE);
 	if (aux != EXITO){
-		printf("Error: %s\n", strerror(errno));
-		printf("Error en la función listen\n");
+		fprintf(stderr, "Error: %s\n", strerror(errno));
+		fprintf(stderr, "Error en la función listen\n");
 		aux = close(fdServidor);
 		if (aux != EXITO)
-			printf("Error: %s\n", strerror(errno));
+			fprintf(stderr, "Error: %s\n", strerror(errno));
 		return ERROR;
 	}
 	socketServidor->fd = fdServidor;
@@ -131,7 +131,7 @@ ssize_t socketEnviar(socket_t* socket, const char* buffer, size_t length) {
 	int escritos = 0;
 	while (escritos < length){
 		int aux = send(socket->fd, buffer + escritos,
-						 length*sizeof(int8_t) - escritos, MSG_NOSIGNAL);
+						 length - escritos, MSG_NOSIGNAL);
 		if (aux == ERROR)
 			return ERROR;
 		else if (aux == SOCKET_NO_DISPONIBLE)
@@ -147,7 +147,7 @@ ssize_t socketRecibir(socket_t* socket, char* buffer, size_t length) {
 	int leidos = 0;
 	while(leidos < length){
 		int aux = recv(socket->fd, buffer + leidos,
-					 length*sizeof(int8_t) - leidos, 0);
+					 length - leidos, 0);
 		if(aux == ERROR)
 			return ERROR;
 		else if (aux == SOCKET_NO_DISPONIBLE)
@@ -161,5 +161,5 @@ void socketDestruir(socket_t* socket) {
 	shutdown(socket->fd, SHUT_RDWR);
 	int aux = close(socket->fd);
 	if (aux != EXITO)
-		printf("Error: %s\n", strerror(errno));
+		fprintf(stderr, "Error: %s\n", strerror(errno));
 }

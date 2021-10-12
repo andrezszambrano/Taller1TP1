@@ -2,7 +2,7 @@
 #include "server.h"
 #include "server_ahorcado.h"
 #include "server_controla_partidas.h"
-#include "common_comunicacion_con_protocolo.h"
+#include "server_comunicacion_con_protocolo.h"
 
 #define ARGUMENTOS_REQUERIDOS 3
 #define ERROR -1
@@ -33,15 +33,15 @@ int servidorProcesarLinea(Servidor* servidor) {
 		return ERROR;
 	ControlaPartidas* controlador = &(servidor->controlaPartidas);
 	socket_t* socketCliente = &(servidor->socketCliente);
-	char* restante;
 	uint16_t largoPalabra = (uint16_t)controlaPartidasEmpezarNuevaPartida(
-							controlador, &restante);
+							controlador);
 	if (largoPalabra == SIN_PALABRAS)
 		return SIN_PALABRAS;
 	int aux = socketAceptar(&(servidor->socketServidor), 
 						 &(servidor->socketCliente));
 	if (aux == ERROR)
 		return ERROR;
+	char* restante = controlaPartidasPalabraRestante(controlador);
 	int cantIntentos = controlaPartidasIntentosPorPartida(controlador);
 	char caracter = protocoloServidorEnviarInfoYRecibirCaracter(socketCliente,
 														 cantIntentos,
@@ -53,6 +53,7 @@ int servidorProcesarLinea(Servidor* servidor) {
 															 caracter);
 	int estadoPartida = controlaPartidasActualizarYDarEstadoActualDePartida(
 																controlador);
+	restante = controlaPartidasPalabraRestante(controlador);
 	while (estadoPartida != VICTORIA && estadoPartida != DERROTA){
 		caracter = protocoloServidorEnviarInfoYRecibirCaracter(socketCliente,
 														 intentosRestantes,
@@ -64,15 +65,15 @@ int servidorProcesarLinea(Servidor* servidor) {
 															 caracter);
 		estadoPartida = controlaPartidasActualizarYDarEstadoActualDePartida(
 																controlador);
+		restante = controlaPartidasPalabraRestante(controlador);
 	}
 	aux = protocoloServidorEnviarMensajeFinDePartida(socketCliente, 
 													  intentosRestantes,
 													  largoPalabra,
-													  &restante,
-													  estadoPartida);
+													  &restante);
+	socketDestruir(socketCliente);
 	if (aux == ERROR)
 		return ERROR;
-	socketDestruir(socketCliente);
 	return EXITO;
 }
 

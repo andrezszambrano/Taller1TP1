@@ -23,18 +23,17 @@ void controlaPartidasInicializar(ControlaPartidas* ptrControla, int numIntentos,
 //Se inicia una nueva partida sí controlador->partidaEnJuego = false y sí hay 
 //una palabra que no se ha jugado. En caso exitoso se retorna el largo de la 
 //palabra a jugar. En caso de que no haya palabra (se leyó todo el archivo)
-// se retorna -2
-int controlaPartidasEmpezarNuevaPartida(ControlaPartidas* controlador, 
-										char** infoRestante);
+// se retorna 1.
+int controlaPartidasEmpezarNuevaPartida(ControlaPartidas* controlador);
 
 //Se regresan las cantidad de intentos totales con las cuales se comienzan las 
-//partidas de ahorcado. Sí no existe el controlador, se devuelve error.  
+//partidas de ahorcado. Sí no existe el controlador, se devuelve -1.  
 int controlaPartidasIntentosPorPartida(ControlaPartidas* controlador);
 
 //Se juegan los caracteres enviados a la partida de ahorcados actual. Sí 
-//controlador->partidaEnJuego = false, devuelve error. Se regresa -1 sí se
-// acabaron los intentos después de validar el caracter, 150 sí se ganó la 
-//partida, o la cantidad de intentos restantes sí no hay novedades.
+//controlador->partidaEnJuego = false, devuelve error. Se regresa la cantidad 
+//de intentos restantes después de jugar el carácter. Sí el puntero a 
+//controlador no existe se retorna -1.
 int controlaPartidasJugarCaracter(ControlaPartidas* controlador, char caracter);
 
 //Se actualiza la partida en juego sí hubo victoria o derrota, modificando
@@ -45,7 +44,12 @@ int controlaPartidasJugarCaracter(ControlaPartidas* controlador, char caracter);
 int controlaPartidasActualizarYDarEstadoActualDePartida(ControlaPartidas* 
 	                                                     conrolador);
 
-//Da el resumen de victorias y derrotas del controlador.
+//Se retorna el puntero a la palabra parcialmente adivinada. En caso de que el
+//controlador no exista se retorna NULL.
+char* controlaPartidasPalabraRestante(ControlaPartidas* controlador);
+
+//Da el resumen de victorias y derrotas del controlador, imprimiendolos por el
+//stdout.
 void controlaPartidasResumen(ControlaPartidas* controlador);
 
 //Libera todos los recursos usados.

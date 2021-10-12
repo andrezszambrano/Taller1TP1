@@ -8,10 +8,11 @@
 #define ERROR -10
 #define FIN_DE_PARTIDA 1
 #define MAX_PALABRA 25
+#define FIN_DE_ARCHIVO -1
 
 void controlaPartidasInicializar(ControlaPartidas* ptrControla, int numIntentos,
-								 char* pathAArchivo){
-	if(!ptrControla)
+								 char* pathAArchivo) {
+	if (!ptrControla)
 		return;
 	ptrControla->numIntentos = numIntentos;
 	ptrControla->partidasGanadas = 0;
@@ -22,52 +23,41 @@ void controlaPartidasInicializar(ControlaPartidas* ptrControla, int numIntentos,
 		printf("Error al abrir el archivo.");
 }	
 
-int controlaPartidasEmpezarNuevaPartida(ControlaPartidas* controlador,
-										 char** infoRestante){
-	if(!controlador)
+int controlaPartidasEmpezarNuevaPartida(ControlaPartidas* controlador) {
+	if (!controlador)
 		return ERROR;
-	if(controlador->partidaEnJuego)
+	if (controlador->partidaEnJuego)
 		return PARTIDA_EN_JUEGO;
 	char palabra[MAX_PALABRA];
 	char* ptrPalabra = palabra;
 	size_t len = MAX_PALABRA;
 	int aux = getline(&ptrPalabra, &len, controlador->ptrArchivo);
-	if (aux != EOF){
+	if (aux != FIN_DE_ARCHIVO){
 		int lenPalabra = ahorcadoInicializar(&(controlador->partidaActual),
-											 palabra, controlador->numIntentos,
-											  infoRestante);
+											 palabra, controlador->numIntentos);
 		controlador->partidaEnJuego = true; 
 		return lenPalabra;
-	}else{
+	} else {
 		return SIN_PALABRAS_RESTANTES;
 	}
 }
 
-int controlaPartidasIntentosPorPartida(ControlaPartidas* controlador){
+int controlaPartidasIntentosPorPartida(ControlaPartidas* controlador) {
 	return controlador->numIntentos;
 }
 
 int controlaPartidasJugarCaracter(ControlaPartidas* controlador, char caracter){
-	if(!controlador)
+	if (!controlador)
 		return ERROR;
-	if(!controlador->partidaEnJuego)
+	if (!controlador->partidaEnJuego)
 		return ERROR;
 
 	return ahorcadoJugarCaracter(&(controlador->partidaActual), caracter);
-/*
-	if(aux != VICTORIA && aux != DERROTA)
-		return aux;
-	else if (aux == VICTORIA)
-		controlador->partidasGanadas++;
-	else
-		controlador->partidasPerdidas++;	
-	controlador->partidaEnJuego = false;
-	return aux;*/
 }
 
 
 int controlaPartidasActualizarYDarEstadoActualDePartida(ControlaPartidas* 
-														controlador){
+														controlador) {
 	if (!controlador)
 		return ERROR;
 	int estadoPartida = ahorcadoEstadoDePartida(&(controlador->partidaActual));
@@ -83,16 +73,23 @@ int controlaPartidasActualizarYDarEstadoActualDePartida(ControlaPartidas*
 	}
 }
 
-void controlaPartidasResumen(ControlaPartidas* controlador){
-	if(!controlador)
+char* controlaPartidasPalabraRestante(ControlaPartidas* controlador) {
+	if (!controlador)
+		return NULL;
+	return ahorcadoPalabraRestante(&(controlador->partidaActual));
+}
+
+void controlaPartidasResumen(ControlaPartidas* controlador) {
+	if (!controlador)
 		return;
 	printf("Resumen:\n");
 	printf("\tVictorias: %i\n", controlador->partidasGanadas);
 	printf("\tDerrotas: %i\n", controlador->partidasPerdidas);
 }
 
-void controlaPartidasDestruir(ControlaPartidas* controlador){
-	if(!controlador)
+void controlaPartidasDestruir(ControlaPartidas* controlador) {
+	if (!controlador)
 		return;
+	ahorcadoDestruir(&(controlador->partidaActual));
 	fclose(controlador->ptrArchivo);
 }

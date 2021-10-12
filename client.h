@@ -2,6 +2,7 @@
 #define __SERVER_H__
 
 #include "common_socket.h"
+
 //Struct que controla un cliente de una sesión de ahorcados
 typedef struct Cliente{  
 	socket_t socketCliente;
