@@ -24,7 +24,7 @@ void pedirCaracter(char* caracteres){
 		charAux = getchar();
 	int i = 0;
 	while(i < MAX_PALABRA && charAux != '\n'){
-		if(97 <= charAux && charAux <= 122){//Caracter es válido
+		if(97 <= charAux && charAux <= 122){//Caracter es válido <-- en ese caso podrías poner una función caracterEsValido(char)
 			caracteres[i] = charAux;
 			i++;
 		}
@@ -103,6 +103,8 @@ int protocoloClienteRecibirMensaje(socket_t* socket){
 				"palabra.\n");
 		return ERROR;
 	}
+
+	// Por qué no aplicar la máscara antes y preguntar si numIntentos == 0? Es más legible
 	if(numIntentos == VALOR_BIT_MAS_SIGNIFICATIVO){//La partida acabó por 
 	//derrota
 		imprimirMensajeDeDerrota(palabraRestante, lenPalabra);
